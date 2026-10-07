@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1119">
+<title>Yetkazib beruvchi — RAYIS BOZORI</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+
+<style>
+:root{
+  --bg:#0B1119;--surf:#151C26;--surf2:#1E2733;--brd:#2A3441;
+  --tx:#F1F5F9;--tx2:#94A3B8;--tx3:#64748B;
+  --pri:#10B981;--pri2:#34D399;--priS:#064E3B;
+  --acc:#3B82F6;--accS:#1E3A8A;
+  --er:#EF4444;--wn:#F59E0B;--pu:#8B5CF6;
+  --dlv:#3B82F6;--dlvS:#1E3A8A;
+  --r1:8px;--r2:12px;--r3:16px;--r4:24px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+[data-t="light"]{
+  --bg:#F5F7FA;--surf:#FFFFFF;--surf2:#EEF2F7;--brd:#E2E8F0;
+  --tx:#0F172A;--tx2:#475569;--tx3:#94A3B8;
+  --pri:#059669;--pri2:#10B981;--priS:#ECFDF5;
+  --acc:#2563EB;--accS:#EFF6FF;
+  --dlv:#2563EB;--dlvS:#DBEAFE;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:none}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.5;min-height:100vh;padding-bottom:100px;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+
+.app{max-width:640px;margin:0 auto;padding:14px}
+
+.hdr{background:linear-gradient(135deg,#3B82F6,#1E40AF);border-radius:var(--r3);padding:14px;margin-bottom:14px;position:sticky;top:8px;z-index:40;box-shadow:0 4px 20px rgba(59,130,246,.3)}
+.htop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.brand{display:flex;align-items:center;gap:10px;flex:1}
+.brand-r{width:38px;height:38px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1E40AF}
+.brand-t{font-size:15px;font-weight:800;color:#fff;line-height:1.1}
+.brand-t span{color:rgba(255,255,255,.7)}
+.brand-s{font-size:10px;color:rgba(255,255,255,.7);letter-spacing:.1em;margin-top:2px}
+.hbtn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 12px;border-radius:var(--r2);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.hbtn:active{transform:scale(.96)}
+.hbtn.online{background:rgba(16,185,129,.4);border-color:rgba(16,185,129,.6)}
+.hbtn.offline{background:rgba(239,68,68,.4);border-color:rgba(239,68,68,.6)}
+.hinfo{display:flex;align-items:center;gap:10px;color:#fff;font-size:12px}
+.hinfo .av{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px}
+.hinfo .nm{font-weight:800}
+.hinfo .badge{background:#fff;color:#1E40AF;font-size:9px;font-weight:900;padding:2px 6px;border-radius:6px}
+
+.db-status{margin:0 4px 14px;padding:8px 12px;border-radius:var(--r2);font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px}
+.db-status.connecting{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#FBBF24}
+.db-status.online{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#34D399}
+.db-status.offline{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#F87171}
+.db-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 4px 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:10px 16px;background:var(--surf);border:1px solid var(--brd);border-radius:20px;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:inherit;position:relative}
+.tab.on{background:var(--dlvS);border-color:var(--dlv);color:var(--dlv);font-weight:800}
+.tab .badge{background:var(--er);color:#fff;font-size:9px;font-weight:900;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kpi{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r2);padding:14px}
+.kpi .v{font-size:24px;font-weight:900;color:var(--dlv);line-height:1}
+.kpi .v.green{color:var(--pri2)}
+.kpi .v.yellow{color:var(--wn)}
+.kpi .v.red{color:var(--er)}
+.kpi .l{font-size:11px;color:var(--tx2);margin-top:6px;font-weight:700;text-transform:uppercase}
+
+.sec{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);margin-bottom:14px;overflow:hidden}
+.sech{padding:14px 16px;background:var(--surf2);border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.sect{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
+.sect .num{width:22px;height:22px;border-radius:50%;background:var(--dlvS);color:var(--dlv);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.secb{padding:16px}
+
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;font-size:13px;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.flabel .hint{font-size:11px;color:var(--tx3);font-weight:500}
+.finput,.fselect{width:100%;padding:14px;background:var(--surf2);border:2px solid transparent;border-radius:var(--r2);color:var(--tx);font-size:15px;font-family:inherit;outline:none;transition:.2s;font-weight:500}
+.finput:focus,.fselect:focus{border-color:var(--dlv);background:var(--surf)}
+.finput::placeholder{color:var(--tx3);font-weight:400}
+.fselect{-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394A3B8'><path d='M8 12L2 6h12z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.btn{padding:14px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bp{background:linear-gradient(135deg,var(--dlv),#1E40AF);color:#fff}
+.bg{background:var(--surf2);color:var(--tx);border:1px solid var(--brd)}
+.ba{background:linear-gradient(135deg,#F59E0B,#B45309);color:#fff}
+.br{background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff}
+.bgr{background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff}
+.bsm{padding:10px 14px;font-size:12px;width:auto;min-height:auto}
+
+.order{background:var(--surf2);border-radius:var(--r2);padding:14px;margin-bottom:10px;border-left:3px solid var(--wn)}
+.order.new{border-left-color:var(--dlv);background:linear-gradient(90deg,rgba(59,130,246,.06),var(--surf2))}
+.order.taken{border-left-color:var(--pu)}
+.order.ontheway{border-left-color:var(--wn);background:linear-gradient(90deg,rgba(245,158,11,.06),var(--surf2))}
+.order.done{border-left-color:var(--pri2);opacity:.75}
+.order.cancel{border-left-color:var(--er);opacity:.6}
+.order-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.order-h .id{font-size:12px;font-weight:900;color:var(--dlv)}
+.order-h .date{font-size:10px;color:var(--tx3);margin-top:2px}
+.order-h .badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap}
+.badge.new{background:rgba(59,130,246,.15);color:#60A5FA}
+.badge.acc{background:rgba(139,92,246,.15);color:#A78BFA}
+.badge.way{background:rgba(245,158,11,.15);color:#FBBF24}
+.badge.done{background:rgba(16,185,129,.15);color:#34D399}
+.badge.cancel{background:rgba(239,68,68,.15);color:#F87171}
+
+.order-cust{font-size:12px;color:var(--tx2);line-height:1.8;padding:12px;background:var(--surf);border-radius:var(--r2);margin-bottom:10px}
+.order-cust b{color:var(--tx);font-weight:700}
+.order-items{padding:10px;background:var(--surf);border-radius:var(--r2);margin-bottom:10px}
+.order-item{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--tx2);gap:10px}
+.order-item .n{flex:1;color:var(--tx);font-weight:600}
+.order-item .p{color:var(--pri2);font-weight:700;white-space:nowrap}
+.order-total{display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--brd);font-size:14px;font-weight:900}
+.order-total .v{color:var(--pri2);font-size:18px}
+
+.location-box{background:var(--surf);border-radius:var(--r2);padding:10px;margin-bottom:10px;font-size:12px;line-height:1.6;color:var(--tx2)}
+.location-box b{color:var(--tx);font-weight:700}
+.maps-link{display:inline-flex;align-items:center;gap:4px;color:var(--acc);font-weight:700;text-decoration:none;margin-top:4px;font-size:11px}
+
+.order-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.order-acts .btn{flex:1;min-width:90px;font-size:12px;padding:11px}
+
+.tl-mini{display:flex;gap:6px;margin-top:10px;padding:8px 0;border-top:1px dashed var(--brd)}
+.tl-step{flex:1;text-align:center;font-size:9px;font-weight:700;position:relative}
+.tl-step .dot{width:8px;height:8px;border-radius:50%;background:var(--surf2);margin:0 auto 4px;border:2px solid var(--brd);transition:.2s}
+.tl-step.done .dot{background:var(--pri2);border-color:var(--pri2)}
+.tl-step.active .dot{background:var(--wn);border-color:var(--wn);animation:pulse-dot 1.5s infinite}
+@keyframes pulse-dot{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+.tl-step.done .lbl{color:var(--pri2)}
+.tl-step.active .lbl{color:var(--wn)}
+.tl-step .lbl{color:var(--tx3)}
+
+.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
+.empty .ic{font-size:64px;margin-bottom:14px;opacity:.4}
+.empty h3{font-size:16px;font-weight:800;color:var(--tx2);margin-bottom:8px}
+.empty p{font-size:13px;line-height:1.6;margin-bottom:16px}
+.empty button{background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff;border:none;padding:12px 24px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+
+.open-profile{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:24px 20px;text-align:center}
+.open-profile .ic{font-size:60px;margin-bottom:12px}
+.open-profile .t{font-size:20px;font-weight:900;margin-bottom:6px}
+.open-profile .d{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:20px}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:8px 14px;background:var(--surf);border:1px solid var(--brd);border-radius:20px;font-size:12px;font-weight:700;color:var(--tx2);cursor:pointer;white-space:nowrap;font-family:inherit}
+.chip.on{background:var(--dlvS);border-color:var(--dlv);color:var(--dlv);font-weight:800}
+
+.chart-bars{display:flex;gap:6px;align-items:flex-end;height:100px;margin-bottom:8px}
+.bar{flex:1;background:linear-gradient(180deg,var(--dlv),#1E40AF);border-radius:6px 6px 2px 2px;min-height:6px;position:relative}
+.bar-label{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--tx3);font-weight:700}
+.bar-labels{display:flex;gap:6px}
+.bar-labels span{flex:1;text-align:center;font-size:10px;color:var(--tx3);font-weight:700}
+.bar-labels span.active{color:var(--dlv)}
+
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--brd);display:flex;justify-content:space-around;padding:8px 0 calc(8px + var(--safe-b));z-index:100;max-width:640px;margin:0 auto}
+.nb{background:none;border:none;color:var(--tx3);font-size:10px;font-weight:600;padding:6px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;font-family:inherit}
+.nb.on{color:var(--dlv)}
+.nb:active{transform:scale(.92)}
+.nb .ic{font-size:22px}
+
+.tst{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+.tst.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tst.e{background:var(--er);color:#fff}
+.tst.o{background:var(--pri);color:#fff}
+
+.md{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.md.on{display:flex}
+.mbox{background:var(--surf);border-radius:var(--r3);padding:24px;max-width:380px;width:100%;text-align:center}
+.mico{font-size:48px;margin-bottom:12px}
+.mt{font-size:17px;font-weight:800;margin-bottom:6px}
+.mdd{font-size:14px;color:var(--tx2);line-height:1.5;margin-bottom:20px;white-space:pre-line}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mbtn{padding:14px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit}
+.mbtn.g{background:var(--surf2);color:var(--tx);border:1px solid var(--brd)}
+.mbtn.r{background:var(--er);color:#fff}
+.mbtn.p{background:linear-gradient(135deg,var(--dlv),#1E40AF);color:#fff}
+
+.sk{background:linear-gradient(90deg,var(--surf) 25%,var(--surf2) 50%,var(--surf) 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--r3);height:120px;margin-bottom:12px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body data-t="dark">
+
+<div class="app">
+  <div class="hdr">
+    <div class="htop">
+      <div class="brand">
+        <div class="brand-r">R</div>
+        <div>
+          <div class="brand-t">RAYIS <span>DELIVERY</span></div>
+          <div class="brand-s">YETKAZIB BERUVCHI</div>
+        </div>
+      </div>
+      <button class="hbtn" id="onlineBtn" onclick="toggleOnline()">🟢 Online</button>
+      <button class="hbtn" onclick="confirmLogout()">Chiqish</button>
+    </div>
+    <div class="hinfo">
+      <div class="av">🚚</div>
+      <div class="nm" id="driverName">Kuryer</div>
+      <div class="badge" id="vehicleBadge">AUTO</div>
+    </div>
+  </div>
+
+  <div class="db-status connecting" id="dbStatus">
+    <span class="dot"></span><span id="dbText">Firebase ulanmoqda...</span>
+  </div>
+
+  <div id="content">
+    <div class="sk"></div>
+    <div class="sk"></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb" onclick="location.href='home.html'"><span class="ic">🏠</span><span>Bosh</span></button>
+  <button class="nb on"><span class="ic">🚚</span><span>Yetkazish</span></button>
+  <button class="nb" onclick="location.href='orders.html'"><span class="ic">📋</span><span>Buyurtma</span></button>
+  <button class="nb" onclick="location.href='profile.html'"><span class="ic">👤</span><span>Profil</span></button>
+  <button class="nb" onclick="confirmLogout()"><span class="ic">🚪</span><span>Chiqish</span></button>
+</div>
+
+<div class="md" id="md" onclick="if(event.target.id==='md')closeMd()">
+  <div class="mbox" id="mbox"></div>
+</div>
+
+<div class="tst" id="tst"></div>
+
+<script>
+var VEHICLES=[
+  {id:'moto',n:'Mototsikl',e:'🏍'},
+  {id:'damas',n:'Damas',e:'🚐'},
+  {id:'labo',n:'Labo',e:'🚚'},
+  {id:'gazel',n:'Gazel',e:'🚛'},
+  {id:'truck',n:'Yuk mashinasi',e:'🚛'},
+  {id:'manip',n:'Manipulyator',e:'🏗'},
+  {id:'yolovchi',n:'Yo\'lovchi tashish',e:'🚕'}
+];
+
+var S={
+  tab:'active',
+  user:{},
+  profile:null,
+  allOrders:[],
+  online:true,
+  filterOrders:'active'
+};
+
+function fmt(n){return Math.round(Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' ')+" so'm";}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,tp){
+  var e=document.getElementById('tst');
+  e.textContent=m;
+  e.className='tst on'+(tp==='e'?' e':tp==='o'?' o':'');
+  clearTimeout(e._t);
+  e._t=setTimeout(function(){e.className='tst'+(tp==='e'?' e':tp==='o'?' o':'');},2400);
+}
+function updateDbStatus(cls,text){
+  var el=document.getElementById('dbStatus');
+  if(!el)return;
+  el.className='db-status '+cls;
+  document.getElementById('dbText').textContent=text;
+}
+function toArray(val){
+  if(!val)return[];
+  if(Array.isArray(val))return val;
+  if(typeof val==='object')return Object.values(val);
+  return[];
+}
+function uid(p){return p+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
+function fmtDate(iso){
+  if(!iso)return '—';
+  try{
+    var d=new Date(iso);
+    var pad=function(n){return String(n).padStart(2,'0');};
+    return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  }catch(e){return '—';}
+}
+
+function countNew(){
+  return S.allOrders.filter(function(o){
+    return o.status==='yangi'&&!o.courierId;
+  }).length;
+}
+
+function myActiveOrders(){
+  if(!S.user.userId)return[];
+  return S.allOrders.filter(function(o){
+    if(o.courierId!==S.user.userId)return false;
+    return o.status!=='yetkazildi'&&o.status!=='bekor';
+  });
+}
+
+function myAllOrders(){
+  if(!S.user.userId)return[];
+  return S.allOrders.filter(function(o){return o.courierId===S.user.userId;});
+}
+
+function render(){
+  if(!S.user||!S.user.userId){
+    document.getElementById('content').innerHTML=
+      '<div class="empty">'+
+        '<div class="ic">🔐</div>'+
+        '<h3>Kirish kerak</h3>'+
+        '<p>Yetkazib beruvchi panelidan foydalanish uchun tizimga kiring</p>'+
+        '<button onclick="location.href=\'index.html\'">🔐 Kirish</button>'+
+      '</div>';
+    return;
+  }
+  document.getElementById('driverName').textContent=S.user.name||'Kuryer';
+  if(S.profile){
+    document.getElementById('vehicleBadge').textContent=(S.profile.vehicleName||'AUTO').toUpperCase();
+  }
+  var ob=document.getElementById('onlineBtn');
+  if(S.online){
+    ob.textContent='🟢 Online';
+    ob.className='hbtn online';
+  }else{
+    ob.textContent='🔴 Offline';
+    ob.className='hbtn offline';
+  }
+  if(!S.profile){renderOpenProfile();return;}
+  var h='';
+  h+=renderTabs();
+  if(S.tab==='active')h+=renderActive();
+  else if(S.tab==='history')h+=renderHistory();
+  else if(S.tab==='stats')h+=renderStats();
+  document.getElementById('content').innerHTML=h;
+}
+
+function renderOpenProfile(){
+  var h='<div class="open-profile">'+
+    '<div class="ic">🚚</div>'+
+    '<div class="t">Kuryer profilini yarating</div>'+
+    '<div class="d">Buyurtmalarni qabul qilish uchun<br>ma\'lumotlaringizni kiriting</div>'+
+  '</div>'+
+  '<div class="sec" style="margin-top:14px">'+
+    '<div class="sech"><div class="sect"><span class="num">1</span>Kuryer ma\'lumotlari</div></div>'+
+    '<div class="secb">'+
+      '<div class="field"><label class="flabel">To\'liq ismingiz <span class="hint">*</span></label>'+
+        '<input class="finput" id="dName" value="'+esc(S.user.name||'')+'" maxlength="60"></div>'+
+      '<div class="field"><label class="flabel">Telefon <span class="hint">*</span></label>'+
+        '<input class="finput" id="dPhone" type="tel" value="'+esc(S.user.phone||'')+'" maxlength="20"></div>'+
+      '<div class="field"><label class="flabel">Transport turi <span class="hint">*</span></label>'+
+        '<select class="fselect" id="dVehicle">'+
+          '<option value="">Tanlang...</option>'+
+          VEHICLES.map(function(v){return '<option value="'+v.id+'">'+v.e+' '+esc(v.n)+'</option>';}).join('')+
+        '</select></div>'+
+      '<div class="field"><label class="flabel">Transport raqami</label>'+
+        '<input class="finput" id="dPlate" placeholder="01 A 123 BC" maxlength="15"></div>'+
+      '<div class="field"><label class="flabel">Hudud <span class="hint">*</span></label>'+
+        '<input class="finput" id="dRegion" value="'+esc(S.user.region||'')+'" maxlength="40"></div>'+
+      '<div class="field"><label class="flabel">Tajriba</label>'+
+        '<input class="finput" id="dExp" placeholder="2 yil" maxlength="30"></div>'+
+      '<button class="btn bp" id="createProfileBtn" onclick="createProfile()">✅ Boshlash</button>'+
+    '</div>'+
+  '</div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+async function createProfile(){
+  var n=(document.getElementById('dName').value||'').trim();
+  var ph=(document.getElementById('dPhone').value||'').trim();
+  var vh=document.getElementById('dVehicle').value;
+  var pl=(document.getElementById('dPlate').value||'').trim();
+  var rg=(document.getElementById('dRegion').value||'').trim();
+  var ex=(document.getElementById('dExp').value||'').trim();
+  if(n.length<2)return toast('Ismingizni kiriting','e');
+  if(ph.replace(/\D/g,'').length<7)return toast('Telefon kiriting','e');
+  if(!vh)return toast('Transport turini tanlang','e');
+  if(rg.length<2)return toast('Hududni kiriting','e');
+  var btn=document.getElementById('createProfileBtn');
+  btn.disabled=true;btn.textContent='⏳ Saqlanmoqda...';
+  try{
+    var vhObj=VEHICLES.find(function(x){return x.id===vh;});
+    var profile={
+      id:uid('drv'),userId:S.user.userId,name:n,phone:ph,
+      vehicle:vh,vehicleName:vhObj?vhObj.n:'—',
+      vehicleEmoji:vhObj?vhObj.e:'🚚',
+      plate:pl,region:rg,experience:ex,
+      rt:5.0,deliveries:0,
+      online:true,
+      createdAt:new Date().toISOString()
+    };
+    var drivers=toArray(DB.get('drivers',[]));
+    drivers.push(profile);
+    await DB.set('drivers',drivers);
+    S.profile=profile;
+    toast('✅ Profilingiz yaratildi!','o');
+    setTimeout(render,400);
+  }catch(e){
+    btn.disabled=false;btn.textContent='✅ Boshlash';
+    toast('Xato: '+(e.message||''),'e');
+  }
+}
+
+function renderTabs(){
+  var newOrders=countNew();
+  return '<div class="tabs">'+
+    '<button class="tab '+(S.tab==='active'?'on':'')+'" onclick="setTab(\'active\')">🚚 Faol'+
+      (newOrders>0?'<span class="badge">'+newOrders+'</span>':'')+
+    '</button>'+
+    '<button class="tab '+(S.tab==='history'?'on':'')+'" onclick="setTab(\'history\')">📜 Tarix</button>'+
+    '<button class="tab '+(S.tab==='stats'?'on':'')+'" onclick="setTab(\'stats\')">📊 Statistika</button>'+
+  '</div>';
+}
+function setTab(t){S.tab=t;render();window.scrollTo({top:0,behavior:'smooth'});}
+
+function renderActive(){
+  var orders=S.allOrders.filter(function(o){
+    return o.status!=='yetkazildi'&&o.status!=='bekor';
+  });
+  orders.sort(function(a,b){
+    if(a.status==='yangi'&&b.status!=='yangi')return -1;
+    if(a.status!=='yangi'&&b.status==='yangi')return 1;
+    return (b.createdAt||'').localeCompare(a.createdAt||'');
+  });
+  var myActive=orders.filter(function(o){return o.courierId===S.user.userId;});
+  var newOrders=orders.filter(function(o){return !o.courierId;});
+  var h='';
+  if(!S.online){
+    h+='<div style="background:rgba(239,68,68,.1);border-left:3px solid var(--er);padding:12px 14px;border-radius:var(--r2);font-size:13px;line-height:1.6;margin-bottom:14px">'+
+      '<b>🔴 Siz offline siz.</b><br>Buyurtmalarni qabul qilish uchun online bo\'ling.'+
+    '</div>';
+  }
+  if(myActive.length>0){
+    h+='<div class="sec">'+
+      '<div class="sech"><div class="sect">🚚 Faol buyurtmalarim</div>'+
+      '<div style="font-size:12px;color:var(--tx3)">'+myActive.length+' ta</div></div>'+
+      '<div class="secb">';
+    myActive.forEach(function(o){h+=orderCard(o,true);});
+    h+='</div></div>';
+  }
+  if(S.online&&newOrders.length>0){
+    h+='<div class="sec">'+
+      '<div class="sech"><div class="sect">🆕 Yangi buyurtmalar</div>'+
+      '<div style="font-size:12px;color:var(--tx3)">'+newOrders.length+' ta</div></div>'+
+      '<div class="secb">';
+    newOrders.forEach(function(o){h+=orderCard(o,false);});
+    h+='</div></div>';
+  }else if(S.online&&newOrders.length===0&&myActive.length===0){
+    h+='<div class="empty">'+
+      '<div class="ic">🚚</div>'+
+      '<h3>Faol buyurtma yo\'q</h3>'+
+      '<p>Yangi buyurtmalar tez orada paydo bo\'ladi</p>'+
+    '</div>';
+  }else if(!S.online&&myActive.length===0){
+    h+='<div class="empty">'+
+      '<div class="ic">🔴</div>'+
+      '<h3>Offline</h3>'+
+      '<p>Online bo\'lish uchun yuqoridagi tugmani bosing</p>'+
+    '</div>';
+  }
+  return h;
+}
+
+function orderCard(o,isMine){
+  var st=o.status||'yangi';
+  var isMyOrder=o.courierId===S.user.userId;
+  var stMap={
+    yangi:{l:'🆕 Yangi',c:'new'},
+    tolandi:{l:'✅ To\'langan',c:'acc'},
+    qabul:{l:'📋 Qabul qilingan',c:'acc'},
+    yolda:{l:'🚚 Yo\'lda',c:'way'},
+    yetkazildi:{l:'📦 Yetkazildi',c:'done'},
+    bekor:{l:'❌ Bekor',c:'cancel'}
+  };
+  var s=stMap[st]||stMap.yangi;
+  var cust=o.customer||{};
+  var total=Number(o.total)||0;
+  var cls='order';
+  if(st==='yangi')cls+=' new';
+  else if(st==='qabul')cls+=' taken';
+  else if(st==='yolda')cls+=' ontheway';
+  else if(st==='yetkazildi')cls+=' done';
+  else if(st==='bekor')cls+=' cancel';
+  var h='<div class="'+cls+'">'+
+    '<div class="order-h">'+
+      '<div><div class="id">#'+esc(o.id)+'</div>'+
+      '<div class="date">'+fmtDate(o.createdAt)+'</div></div>'+
+      '<div class="badge '+s.c+'">'+s.l+'</div>'+
+    '</div>';
+  h+='<div class="order-cust">'+
+    '👤 <b>'+esc(cust.name||'—')+'</b><br>'+
+    '📞 '+esc(cust.phone||'—')+
+  '</div>';
+  var addr=[cust.region,cust.district,cust.address].filter(Boolean).join(', ');
+  if(addr){
+    var mapsQuery=encodeURIComponent(addr);
+    h+='<div class="location-box">'+
+      '📍 <b>Manzil:</b><br>'+esc(addr)+
+      '<br><a href="https://yandex.uz/maps/?text='+mapsQuery+'" target="_blank" class="maps-link">🗺 Xaritada ochish →</a>'+
+    '</div>';
+  }
+  if(cust.note){
+    h+='<div class="location-box">📝 <b>Izoh:</b> '+esc(cust.note)+'</div>';
+  }
+  if(o.items&&o.items.length){
+    h+='<div class="order-items">';
+    o.items.forEach(function(it){
+      var sum=(Number(it.price)||0)*(Number(it.qty)||1);
+      h+='<div class="order-item">'+
+        '<div class="n">'+esc(it.name)+'</div>'+
+        '<div class="p">× '+it.qty+' · '+fmt(sum)+'</div>'+
+      '</div>';
+    });
+    h+='</div>';
+  }
+  h+='<div class="order-total"><span>Jami:</span><span class="v">'+fmt(total)+'</span></div>';
+  var stepIdx=0;
+  if(st==='qabul')stepIdx=1;
+  else if(st==='yolda')stepIdx=2;
+  else if(st==='yetkazildi')stepIdx=3;
+  h+='<div class="tl-mini">'+
+    '<div class="tl-step '+(stepIdx>=0?'done':'')+'"><div class="dot"></div><div class="lbl">Yangi</div></div>'+
+    '<div class="tl-step '+(stepIdx>=1?'done':'')+(st==='qabul'?' active':'')+'"><div class="dot"></div><div class="lbl">Qabul</div></div>'+
+    '<div class="tl-step '+(stepIdx>=2?'done':'')+(st==='yolda'?' active':'')+'"><div class="dot"></div><div class="lbl">Yo\'lda</div></div>'+
+    '<div class="tl-step '+(stepIdx>=3?'done':'')+'"><div class="dot"></div><div class="lbl">Yetkazildi</div></div>'+
+  '</div>';
+  if(isMyOrder){
+    if(st==='qabul'||st==='tolandi'){
+      h+='<div class="order-acts">'+
+        '<button class="btn ba bsm" onclick="setStatus(\''+o.id+'\',\'yolda\')">🚚 Yo\'lga chiqdim</button>'+
+        (cust.phone?'<a href="tel:'+esc(cust.phone)+'" class="btn bg bsm" style="text-decoration:none">📞</a>':'')+
+      '</div>';
+    }else if(st==='yolda'){
+      h+='<div class="order-acts">'+
+        '<button class="btn bgr bsm" onclick="confirmDelivered(\''+o.id+'\')">📦 Yetkazdim</button>'+
+        (cust.phone?'<a href="tel:'+esc(cust.phone)+'" class="btn bg bsm" style="text-decoration:none">📞</a>':'')+
+      '</div>';
+    }
+  }else if(!o.courierId&&S.online){
+    h+='<div class="order-acts">'+
+      '<button class="btn bp bsm" onclick="acceptOrder(\''+o.id+'\')">✅ Qabul qilaman</button>'+
+      (cust.phone?'<a href="tel:'+esc(cust.phone)+'" class="btn bg bsm" style="text-decoration:none">📞</a>':'')+
+    '</div>';
+  }else if(o.courierId&&!isMyOrder){
+    h+='<div style="text-align:center;font-size:11px;color:var(--tx3);margin-top:10px">🚚 '+esc(o.courierName||'Kuryer')+' yetkazmoqda</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+async function acceptOrder(id){
+  if(!S.online){toast('Avval online bo\'ling','e');return;}
+  try{
+    var orders=toArray(DB.get('orders',[]));
+    var idx=orders.findIndex(function(o){return o.id===id;});
+    if(idx===-1)return;
+    if(orders[idx].courierId){toast('Boshqa kuryer oldi','e');return;}
+    orders[idx].courierId=S.user.userId;
+    orders[idx].courierName=S.profile.name;
+    orders[idx].courierPhone=S.profile.phone;
+    orders[idx].status='qabul';
+    orders[idx].acceptedAt=new Date().toISOString();
+    if(!orders[idx].statusLog)orders[idx].statusLog=[];
+    orders[idx].statusLog.push({status:'qabul',date:new Date().toISOString(),by:S.profile.name});
+    await DB.set('orders',orders);
+    if(window.addNotification){
+      window.addNotification({
+        type:'order',icon:'📋',iconClass:'blue',
+        title:'Buyurtma qabul qilindi',
+        text:'#'+id+' — kuryer: '+S.profile.name,
+        link:'orders.html'
+      });
+    }
+    toast('✅ Buyurtma qabul qilindi!','o');
+  }catch(e){toast('Xato: '+(e.message||''),'e');}
+}
+
+async function setStatus(id,st){
+  try{
+    var orders=toArray(DB.get('orders',[]));
+    var idx=orders.findIndex(function(o){return o.id===id;});
+    if(idx===-1)return;
+    orders[idx].status=st;
+    orders[idx].updatedAt=new Date().toISOString();
+    if(!orders[idx].statusLog)orders[idx].statusLog=[];
+    orders[idx].statusLog.push({status:st,date:new Date().toISOString(),by:S.profile.name});
+    await DB.set('orders',orders);
+    if(window.addNotification){
+      window.addNotification({
+        type:st==='yolda'?'warning':'order',
+        icon:st==='yolda'?'🚚':'📋',
+        iconClass:st==='yolda'?'yellow':'blue',
+        title:'Buyurtma: '+st,
+        text:'#'+id,
+        link:'orders.html'
+      });
+    }
+    var msgs={yolda:'🚚 Yo\'lga chiqdingiz',yetkazildi:'📦 Yetkazildi!'};
+    toast(msgs[st]||'Yangilandi','o');
+  }catch(e){toast('Xato','e');}
+}
+
+var _pendingDeliverId=null;
+function confirmDelivered(id){
+  _pendingDeliverId=id;
+  openMd('📦','Yetkazildimi?','Buyurtma mijozga topshirilganini tasdiqlaysizmi?','Ha, yetkazdim','p',async function(){
+    try{
+      var orders=toArray(DB.get('orders',[]));
+      var idx=orders.findIndex(function(o){return o.id===_pendingDeliverId;});
+      if(idx===-1)return;
+      orders[idx].status='yetkazildi';
+      orders[idx].deliveredAt=new Date().toISOString();
+      orders[idx].updatedAt=new Date().toISOString();
+      if(!orders[idx].statusLog)orders[idx].statusLog=[];
+      orders[idx].statusLog.push({status:'yetkazildi',date:new Date().toISOString(),by:S.profile.name});
+      await DB.set('orders',orders);
+      var drivers=toArray(DB.get('drivers',[]));
+      var didx=drivers.findIndex(function(d){return d.userId===S.user.userId;});
+      if(didx!==-1){
+        drivers[didx].deliveries=(drivers[didx].deliveries||0)+1;
+        await DB.set('drivers',drivers);
+      }
+      if(window.addNotification){
+        window.addNotification({
+          type:'success',icon:'📦',iconClass:'green',
+          title:'Buyurtma yetkazildi!',
+          text:'#'+_pendingDeliverId+' — xaridingiz uchun rahmat',
+          link:'orders.html'
+        });
+      }
+      toast('✅ Buyurtma yetkazildi! Rahmat!','o');
+    }catch(e){toast('Xato','e');}
+  });
+}
+
+function renderHistory(){
+  var orders=myAllOrders().filter(function(o){
+    return o.status==='yetkazildi'||o.status==='bekor';
+  });
+  orders.sort(function(a,b){
+    return (b.deliveredAt||b.updatedAt||'').localeCompare(a.deliveredAt||a.updatedAt||'');
+  });
+  var h='<div class="sec">'+
+    '<div class="sech"><div class="sect">📜 Tarix</div>'+
+    '<div style="font-size:12px;color:var(--tx3)">'+orders.length+' ta</div></div>'+
+    '<div class="secb">';
+  if(!orders.length){
+    h+='<div style="text-align:center;padding:24px;color:var(--tx3);font-size:13px">Tarix bo\'sh</div>';
+  }else{
+    orders.forEach(function(o){h+=historyCard(o);});
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function historyCard(o){
+  var st=o.status==='yetkazildi'?'done':'cancel';
+  var stLabel=o.status==='yetkazildi'?'📦 Yetkazildi':'❌ Bekor';
+  var cust=o.customer||{};
+  var h='<div class="order '+st+'" style="opacity:.85">'+
+    '<div class="order-h">'+
+      '<div><div class="id">#'+esc(o.id)+'</div>'+
+      '<div class="date">'+fmtDate(o.deliveredAt||o.updatedAt||o.createdAt)+'</div></div>'+
+      '<div class="badge '+st+'">'+stLabel+'</div>'+
+    '</div>'+
+    '<div class="order-cust">'+
+      '👤 <b>'+esc(cust.name||'—')+'</b><br>'+
+      '📞 '+esc(cust.phone||'—')+
+    '</div>';
+  var addr=[cust.region,cust.district,cust.address].filter(Boolean).join(', ');
+  if(addr){
+    h+='<div class="location-box">📍 '+esc(addr)+'</div>';
+  }
+  h+='<div class="order-total"><span>Summa:</span><span class="v">'+fmt(o.total||0)+'</span></div>';
+  h+='</div>';
+  return h;
+}
+
+function renderStats(){
+  var myOrders=myAllOrders();
+  var completed=myOrders.filter(function(o){return o.status==='yetkazildi';});
+  var today=completed.filter(function(o){
+    if(!o.deliveredAt)return false;
+    return new Date(o.deliveredAt).toDateString()===new Date().toDateString();
+  });
+  var revenue=completed.reduce(function(s,o){return s+(Number(o.total)||0);},0);
+  var h='<div class="kpis">'+
+    '<div class="kpi"><div class="v green">'+completed.length+'</div><div class="l">Yetkazilgan</div></div>'+
+    '<div class="kpi"><div class="v yellow">'+today.length+'</div><div class="l">Bugun</div></div>'+
+    '<div class="kpi"><div class="v">'+myOrders.length+'</div><div class="l">Jami</div></div>'+
+    '<div class="kpi"><div class="v" style="font-size:16px">'+fmt(revenue)+'</div><div class="l">Summa</div></div>'+
+  '</div>';
+  h+='<div class="sec">'+
+    '<div class="sech"><div class="sect">👤 Kuryer profili</div></div>'+
+    '<div class="secb">'+
+      '<div style="font-size:15px;font-weight:800;margin-bottom:6px">'+esc(S.profile.name)+'</div>'+
+      '<div style="font-size:12px;color:var(--tx2);line-height:1.8">'+
+        '🚚 '+esc(S.profile.vehicleName)+'<br>'+
+        (S.profile.plate?'🔢 '+esc(S.profile.plate)+'<br>':'')+
+        '📞 '+esc(S.profile.phone)+'<br>'+
+        '📍 '+esc(S.profile.region)+'<br>'+
+        '⭐ '+(S.profile.rt||5).toFixed(1)+' reyting<br>'+
+        '📦 '+completed.length+' yetkazish'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  h+='<div class="sec">'+
+    '<div class="sech"><div class="sect">📊 So\'nggi 7 kun</div></div>'+
+    '<div class="secb">';
+  var days=['Du','Se','Ch','Pa','Ju','Sh','Ya'];
+  var todayIdx=new Date().getDay()===0?6:new Date().getDay()-1;
+  var bars=[];
+  for(var i=0;i<7;i++){
+    if(i===todayIdx)bars.push(today.length);
+    else{
+      var dayCount=completed.filter(function(o){
+        if(!o.deliveredAt)return false;
+        var d=new Date(o.deliveredAt);
+        var idx=d.getDay()===0?6:d.getDay()-1;
+        return idx===i;
+      }).length;
+      bars.push(dayCount);
+    }
+  }
+  var maxVal=Math.max(1,Math.max.apply(null,bars));
+  h+='<div class="chart-bars">';
+  bars.forEach(function(v){
+    var pct=(v/maxVal)*100;
+    h+='<div class="bar" style="height:'+Math.max(pct,6)+'%"><div class="bar-label">'+v+'</div></div>';
+  });
+  h+='</div><div class="bar-labels">';
+  days.forEach(function(d,i){
+    h+='<span class="'+(i===todayIdx?'active':'')+'">'+d+'</span>';
+  });
+  h+='</div>';
+  h+='</div></div>';
+  return h;
+}
+
+async function toggleOnline(){
+  S.online=!S.online;
+  try{
+    if(S.profile){
+      S.profile.online=S.online;
+      var drivers=toArray(DB.get('drivers',[]));
+      var idx=drivers.findIndex(function(d){return d.userId===S.user.userId;});
+      if(idx!==-1){drivers[idx].online=S.online;await DB.set('drivers',drivers);}
+    }
+  }catch(e){}
+  toast(S.online?'🟢 Online':'🔴 Offline',S.online?'o':'e');
+  render();
+}
+
+var _cb=null;
+function openMd(ico,t,d,okText,okCls,cb){
+  document.getElementById('mbox').innerHTML=
+    '<div class="mico">'+ico+'</div>'+
+    '<div class="mt">'+t+'</div>'+
+    '<div class="mdd">'+esc(d)+'</div>'+
+    '<div class="mbtns">'+
+      '<button class="mbtn g" onclick="closeMd()">Bekor</button>'+
+      '<button class="mbtn '+(okCls||'r')+'" onclick="mdConfirm()">'+okText+'</button>'+
+    '</div>';
+  _cb=cb;
+  document.getElementById('md').classList.add('on');
+}
+function closeMd(){document.getElementById('md').classList.remove('on');_cb=null;}
+function mdConfirm(){if(_cb)_cb();closeMd();}
+
+function confirmLogout(){
+  openMd('🚪','Chiqish','Hisobdan chiqmoqchimisiz?','Chiqish','r',async function(){
+    try{await DB.remove('user');}catch(e){}
+    toast('👋 Chiqdingiz','o');
+    setTimeout(function(){location.href='index.html';},600);
+  });
+}
+
+function setupListeners(){
+  DB.on('drivers',function(val){
+    var drivers=toArray(val);
+    var mine=drivers.find(function(d){return d.userId===S.user.userId;})||null;
+    if(mine&&!S.profile){
+      S.profile=mine;
+      S.online=mine.online!==false;
+    }
+    render();
+  });
+  DB.on('orders',function(val){
+    S.allOrders=toArray(val).filter(function(o){return o&&o.id;});
+    render();
+  });
+}
+
+function init(){
+  var th=DB.get('theme','dark');
+  document.body.dataset.t=th;
+  S.user=DB.get('user',{});
+  S.allOrders=toArray(DB.get('orders',[])).filter(function(o){return o&&o.id;});
+  var drivers=toArray(DB.get('drivers',[]));
+  S.profile=drivers.find(function(d){return d.userId===S.user.userId;})||null;
+  if(S.profile)S.online=S.profile.online!==false;
+  render();
+  if(DB.isReady())onReady();
+  else{
+    window.addEventListener('db:ready',onReady);
+    setTimeout(function(){updateDbStatus('offline','💾 Offline rejim');},3000);
+  }
+  window.addEventListener('db:connection',function(e){
+    updateDbStatus(e.detail.online?'online':'offline',e.detail.online?'🟢 Online':'🔴 Offline');
+  });
+}
+
+function onReady(){
+  console.log('🔥 Firebase tayyor');
+  updateDbStatus('online','🟢 Online — real-time');
+  DB.syncAll().then(function(){
+    S.user=DB.get('user',{});
+    var drivers=toArray(DB.get('drivers',[]));
+    S.profile=drivers.find(function(d){return d.userId===S.user.userId;})||null;
+    if(S.profile)S.online=S.profile.online!==false;
+    S.allOrders=toArray(DB.get('orders',[])).filter(function(o){return o&&o.id;});
+    setupListeners();
+    render();
+  });
+}
+
+init();
+console.log('✅ Delivery sahifasi — Firebase bilan');
+</script>
+</body>
+</html>

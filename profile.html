@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1119">
+<title>Profil — RAYIS BOZORI</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+
+<style>
+:root{
+  --bg:#0B1119;--surf:#151C26;--surf2:#1E2733;--brd:#2A3441;
+  --tx:#F1F5F9;--tx2:#94A3B8;--tx3:#64748B;
+  --pri:#10B981;--pri2:#34D399;--priS:#064E3B;
+  --acc:#3B82F6;--accS:#1E3A8A;
+  --er:#EF4444;--wn:#F59E0B;--pu:#8B5CF6;
+  --r1:8px;--r2:12px;--r3:16px;--r4:24px;
+  --sh2:0 4px 12px rgba(0,0,0,.4);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+[data-t="light"]{
+  --bg:#F5F7FA;--surf:#FFFFFF;--surf2:#EEF2F7;--brd:#E2E8F0;
+  --tx:#0F172A;--tx2:#475569;--tx3:#94A3B8;
+  --pri:#059669;--pri2:#10B981;--priS:#ECFDF5;
+  --acc:#2563EB;--accS:#EFF6FF;
+  --sh2:0 4px 12px rgba(15,23,42,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:none}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.5;min-height:100vh;padding-bottom:100px;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+
+.app{max-width:640px;margin:0 auto;padding:14px}
+.hdr{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:12px;margin-bottom:14px;position:sticky;top:8px;z-index:40;display:flex;align-items:center;gap:10px}
+.back{width:44px;height:44px;border-radius:var(--r2);background:var(--surf2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--tx);flex-shrink:0}
+.back:active{transform:scale(.92)}
+.htitle{flex:1;font-size:17px;font-weight:800}
+.hbtn{width:42px;height:42px;border-radius:var(--r2);background:var(--surf2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--tx);flex-shrink:0}
+.hbtn:active{transform:scale(.92)}
+
+.db-status{margin:0 4px 14px;padding:8px 12px;border-radius:var(--r2);font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px}
+.db-status.connecting{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#FBBF24}
+.db-status.online{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#34D399}
+.db-status.offline{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#F87171}
+.db-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.pcard{background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(59,130,246,.1));border:1px solid rgba(16,185,129,.25);border-radius:var(--r4);padding:24px 20px;text-align:center;position:relative;overflow:hidden;margin-bottom:14px}
+.pcard::after{content:"";position:absolute;top:-50%;right:-30%;width:220px;height:220px;background:radial-gradient(circle,rgba(16,185,129,.3),transparent 70%);border-radius:50%;pointer-events:none}
+.pavatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--pri2),var(--pri));display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 12px;box-shadow:0 10px 30px rgba(16,185,129,.4);position:relative;z-index:1;color:#fff;font-weight:900}
+.pname{font-size:22px;font-weight:900;margin-bottom:4px;position:relative;z-index:1}
+.pmeta{font-size:13px;color:var(--tx2);position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pmeta .chip{padding:3px 10px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--pri2);border-radius:20px;font-size:11px;font-weight:800}
+.pmeta .chip.acc{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.3);color:#60A5FA}
+.pedit-btn{margin-top:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;position:relative;z-index:1;font-family:inherit}
+[data-t="light"] .pedit-btn{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);color:var(--pri)}
+
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r2);padding:14px 8px;text-align:center;cursor:pointer}
+.stat:active{transform:scale(.97)}
+.stat .v{font-size:22px;font-weight:900;color:var(--acc);line-height:1}
+.stat .l{font-size:11px;color:var(--tx2);margin-top:6px;font-weight:700;text-transform:uppercase}
+
+.section{margin-bottom:14px}
+.section-title{font-size:11px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-left:6px}
+.menu{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);overflow:hidden}
+.mitem{display:flex;align-items:center;gap:14px;padding:16px;cursor:pointer;transition:.2s;border-bottom:1px solid var(--brd)}
+.mitem:last-child{border-bottom:none}
+.mitem:active{background:var(--surf2)}
+.mitem .ic{width:40px;height:40px;border-radius:var(--r2);background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.mitem .ic.green{background:rgba(16,185,129,.15);color:var(--pri2)}
+.mitem .ic.blue{background:rgba(59,130,246,.15);color:#60A5FA}
+.mitem .ic.yellow{background:rgba(245,158,11,.15);color:#FBBF24}
+.mitem .ic.purple{background:rgba(139,92,246,.15);color:#A78BFA}
+.mitem .ic.red{background:rgba(239,68,68,.15);color:#F87171}
+.mitem .info{flex:1;min-width:0}
+.mitem .t{font-size:14px;font-weight:700;margin-bottom:2px}
+.mitem .d{font-size:11px;color:var(--tx2);font-weight:500}
+.mitem .arrow{color:var(--tx3);font-size:18px;flex-shrink:0}
+.mitem.danger .t{color:var(--er)}
+
+.toggle{position:relative;width:46px;height:26px;background:var(--surf2);border-radius:14px;cursor:pointer;transition:.2s;flex-shrink:0;border:1px solid var(--brd)}
+.toggle.on{background:var(--pri2);border-color:var(--pri2)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on::after{left:22px}
+
+.form-group{margin-bottom:14px}
+.flabel{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.finput,.fselect{width:100%;padding:14px;background:var(--surf2);border:2px solid transparent;border-radius:var(--r2);color:var(--tx);font-size:15px;font-family:inherit;outline:none;transition:.2s;font-weight:500}
+.finput:focus,.fselect:focus{border-color:var(--pri2);background:var(--surf)}
+.finput::placeholder{color:var(--tx3);font-weight:400}
+.fselect{-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394A3B8'><path d='M8 12L2 6h12z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+.btn{padding:14px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit;width:100%;transition:.2s}
+.btn:active{transform:scale(.97)}
+.bp{background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff}
+.bg{background:var(--surf2);color:var(--tx);border:1px solid var(--brd);margin-top:8px}
+
+.view{display:none}
+.view.on{display:block;animation:fi .3s}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.about-logo{text-align:center;padding:20px 0}
+.about-logo .r{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,var(--pri2),var(--pri));display:inline-flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#fff;box-shadow:0 10px 30px rgba(16,185,129,.4)}
+.about-logo .t{font-size:20px;font-weight:900;margin-top:12px}
+.about-logo .v{font-size:12px;color:var(--tx3);margin-top:4px}
+.about-info{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:16px;font-size:13px;line-height:1.8;color:var(--tx2)}
+.about-info b{color:var(--tx)}
+
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--brd);display:flex;justify-content:space-around;padding:8px 0 calc(8px + var(--safe-b));z-index:100;max-width:640px;margin:0 auto}
+.nb{background:none;border:none;color:var(--tx3);font-size:10px;font-weight:600;padding:6px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;position:relative;font-family:inherit}
+.nb.on{color:var(--pri2)}
+.nb:active{transform:scale(.92)}
+.nb .ic{font-size:22px}
+
+.tst{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+.tst.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tst.e{background:var(--er);color:#fff}
+.tst.o{background:var(--pri);color:#fff}
+
+.md{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.md.on{display:flex}
+.mbox{background:var(--surf);border-radius:var(--r3);padding:24px;max-width:380px;width:100%;text-align:center}
+.mico{font-size:48px;margin-bottom:12px}
+.mt{font-size:17px;font-weight:800;margin-bottom:6px}
+.mdd{font-size:14px;color:var(--tx2);line-height:1.5;margin-bottom:20px;white-space:pre-line}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mbtn{padding:14px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit}
+.mbtn.g{background:var(--surf2);color:var(--tx);border:1px solid var(--brd)}
+.mbtn.r{background:var(--er);color:#fff}
+</style>
+</head>
+<body data-t="dark">
+
+<div class="app">
+  <div class="hdr">
+    <button class="back" onclick="goBack()">←</button>
+    <div class="htitle">Profil</div>
+    <button class="hbtn" onclick="toggleTheme()" id="thBtn">☀️</button>
+  </div>
+
+  <div class="db-status connecting" id="dbStatus">
+    <span class="dot"></span><span id="dbText">Firebase ulanmoqda...</span>
+  </div>
+
+  <!-- MAIN VIEW -->
+  <div class="view on" id="vMain">
+    <div class="pcard">
+      <div class="pavatar" id="avatar">👤</div>
+      <div class="pname" id="userName">Mehmon</div>
+      <div class="pmeta" id="userMeta">
+        <span class="chip">🛒 Xaridor</span>
+      </div>
+      <button class="pedit-btn" onclick="openEdit()">✏️ Tahrirlash</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat" onclick="location.href='orders.html'">
+        <div class="v" id="statOrders">0</div>
+        <div class="l">Buyurtma</div>
+      </div>
+      <div class="stat" onclick="location.href='favorites.html'">
+        <div class="v" id="statFavs">0</div>
+        <div class="l">Sevimli</div>
+      </div>
+      <div class="stat" onclick="location.href='cart.html'">
+        <div class="v" id="statCart">0</div>
+        <div class="l">Savat</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Hisob</div>
+      <div class="menu">
+        <div class="mitem" onclick="openEdit()">
+          <div class="ic green">✏️</div>
+          <div class="info"><div class="t">Ma'lumotlarni tahrirlash</div><div class="d">Ism, telefon, viloyat</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem" onclick="location.href='orders.html'">
+          <div class="ic blue">📦</div>
+          <div class="info"><div class="t">Buyurtmalarim</div><div class="d">Tarix va holat</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem" onclick="location.href='favorites.html'">
+          <div class="ic red">❤️</div>
+          <div class="info"><div class="t">Sevimlilar</div><div class="d">Saqlangan mahsulotlar</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem" onclick="location.href='cart.html'">
+          <div class="ic yellow">🛒</div>
+          <div class="info"><div class="t">Savat</div><div class="d">Tanlangan mahsulotlar</div></div>
+          <div class="arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Sozlamalar</div>
+      <div class="menu">
+        <div class="mitem" onclick="openLang()">
+          <div class="ic purple">🌐</div>
+          <div class="info"><div class="t">Til</div><div class="d" id="curLangLbl">O'zbek</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem" onclick="toggleTheme()">
+          <div class="ic purple">🌙</div>
+          <div class="info"><div class="t">Mavzu</div><div class="d" id="curThemeLbl">Tungi</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem" onclick="toggleNotif()">
+          <div class="ic yellow">🔔</div>
+          <div class="info"><div class="t">Bildirishnomalar</div><div class="d">Yangi buyurtmalar haqida</div></div>
+          <div class="toggle" id="notifToggle"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Yordam</div>
+      <div class="menu">
+        <div class="mitem" onclick="openAbout()">
+          <div class="ic blue">ℹ️</div>
+          <div class="info"><div class="t">RAYIS BOZORI haqida</div><div class="d">Versiya va ma'lumot</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem" onclick="contactSupport()">
+          <div class="ic green">📞</div>
+          <div class="info"><div class="t">Qo'llab-quvvatlash</div><div class="d">+998 91 585 04 87</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="mitem danger" onclick="confirmLogout()">
+          <div class="ic red">🚪</div>
+          <div class="info"><div class="t">Chiqish</div><div class="d">Hisobdan chiqish</div></div>
+          <div class="arrow">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT VIEW -->
+  <div class="view" id="vEdit">
+    <div style="background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:18px;margin-bottom:14px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:16px">✏️ Ma'lumotlarni tahrirlash</div>
+      
+      <div class="form-group">
+        <label class="flabel">Ism *</label>
+        <input class="finput" id="fFirstName" placeholder="Ali" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="flabel">Familiya *</label>
+        <input class="finput" id="fLastName" placeholder="Valiyev" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="flabel">Telefon raqam *</label>
+        <input class="finput" id="fPhone" type="tel" placeholder="+998 90 123 45 67" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label class="flabel">Viloyat *</label>
+        <select class="fselect" id="fRegion">
+          <option value="">Tanlang...</option>
+          <option value="Toshkent shahri">Toshkent shahri</option>
+          <option value="Toshkent viloyati">Toshkent viloyati</option>
+          <option value="Samarqand">Samarqand</option>
+          <option value="Buxoro">Buxoro</option>
+          <option value="Navoiy">Navoiy</option>
+          <option value="Qashqadaryo">Qashqadaryo</option>
+          <option value="Surxondaryo">Surxondaryo</option>
+          <option value="Jizzax">Jizzax</option>
+          <option value="Sirdaryo">Sirdaryo</option>
+          <option value="Farg'ona">Farg'ona</option>
+          <option value="Andijon">Andijon</option>
+          <option value="Namangan">Namangan</option>
+          <option value="Xorazm">Xorazm</option>
+          <option value="Qoraqalpog'iston">Qoraqalpog'iston</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="flabel">Tuman / Shahar</label>
+        <input class="finput" id="fDistrict" placeholder="Qumqorgon" maxlength="40">
+      </div>
+      <button class="btn bp" onclick="saveProfile()">💾 Saqlash</button>
+      <button class="btn bg" onclick="closeEdit()">← Orqaga</button>
+    </div>
+  </div>
+
+  <!-- LANG VIEW -->
+  <div class="view" id="vLang">
+    <div style="background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:18px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:16px">🌐 Tilni tanlang</div>
+      <div class="mitem" style="border-radius:var(--r2);margin-bottom:8px;border:none;background:var(--surf2)" onclick="setLang('uz')">
+        <div class="ic">🇺🇿</div>
+        <div class="info"><div class="t">O'zbekcha</div><div class="d">O'zbek tili</div></div>
+        <div class="arrow" id="langChk_uz">›</div>
+      </div>
+      <div class="mitem" style="border-radius:var(--r2);margin-bottom:8px;border:none;background:var(--surf2)" onclick="setLang('ru')">
+        <div class="ic">🇷🇺</div>
+        <div class="info"><div class="t">Русский</div><div class="d">Rus tili</div></div>
+        <div class="arrow" id="langChk_ru">›</div>
+      </div>
+      <div class="mitem" style="border-radius:var(--r2);margin-bottom:14px;border:none;background:var(--surf2)" onclick="setLang('en')">
+        <div class="ic">🇬🇧</div>
+        <div class="info"><div class="t">English</div><div class="d">Ingliz tili</div></div>
+        <div class="arrow" id="langChk_en">›</div>
+      </div>
+      <button class="btn bg" onclick="closeLang()">← Orqaga</button>
+    </div>
+  </div>
+
+  <!-- ABOUT VIEW -->
+  <div class="view" id="vAbout">
+    <div class="about-logo">
+      <div class="r">R</div>
+      <div class="t">RAYIS BOZORI</div>
+      <div class="v">Versiya 1.0.0</div>
+    </div>
+    <div class="about-info">
+      <b>RAYIS BOZORI</b> — O'zbekiston uchun universal marketplace.<br><br>
+      <b>🎯 Vazifamiz:</b> Hayotingiz uchun kerakli barcha narsani bir joyda toping.<br><br>
+      <b>📞 Aloqa:</b> +998 91 585 04 87<br>
+      <b>📧 Email:</b> info@rayisbozori.uz<br>
+      <b>🌐 Veb:</b> rayisbozori.uz<br><br>
+      <div style="text-align:center;color:var(--tx3);font-size:11px;padding-top:12px;border-top:1px solid var(--brd);margin-top:12px">© 2025 RAYIS BOZORI<br>Barcha huquqlar himoyalangan</div>
+    </div>
+    <button class="btn bg" onclick="closeAbout()" style="margin-top:14px">← Orqaga</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb" onclick="location.href='home.html'"><span class="ic">🏠</span><span>Bosh</span></button>
+  <button class="nb" onclick="location.href='search.html'"><span class="ic">🔍</span><span>Qidiruv</span></button>
+  <button class="nb" onclick="location.href='kalkulyator.html'"><span class="ic">🧮</span><span>Kalkulyator</span></button>
+  <button class="nb" onclick="location.href='cart.html'"><span class="ic">🛒</span><span>Savat</span></button>
+  <button class="nb on"><span class="ic">👤</span><span>Profil</span></button>
+</div>
+
+<div class="md" id="md" onclick="if(event.target.id==='md')closeMd()">
+  <div class="mbox">
+    <div class="mico" id="mIco">⚠️</div>
+    <div class="mt" id="mT">Tasdiqlaysizmi?</div>
+    <div class="mdd" id="mD">—</div>
+    <div class="mbtns">
+      <button class="mbtn g" onclick="closeMd()">Bekor</button>
+      <button class="mbtn r" id="mOk" onclick="mdConfirm()">Tasdiqlash</button>
+    </div>
+  </div>
+</div>
+
+<div class="tst" id="tst"></div>
+
+<script>
+var S={ user:{}, orders:[], favs:[], cart:[] };
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,tp){
+  var e=document.getElementById('tst');
+  e.textContent=m;
+  e.className='tst on'+(tp==='e'?' e':tp==='o'?' o':'');
+  clearTimeout(e._t);
+  e._t=setTimeout(function(){e.className='tst'+(tp==='e'?' e':tp==='o'?' o':'');},2400);
+}
+function goBack(){if(history.length>1)history.back();else location.href='home.html';}
+function updateDbStatus(cls,text){
+  var el=document.getElementById('dbStatus');
+  if(!el)return;
+  el.className='db-status '+cls;
+  document.getElementById('dbText').textContent=text;
+}
+function toArray(val){
+  if(!val)return[];
+  if(Array.isArray(val))return val;
+  if(typeof val==='object')return Object.values(val);
+  return[];
+}
+function switchView(id){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
+  document.getElementById(id).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function render(){
+  var u=S.user||{};
+  var name=u.firstName?(u.firstName+' '+(u.lastName||'')).trim():(u.name||'Mehmon');
+  var initial=name.charAt(0).toUpperCase();
+  
+  document.getElementById('avatar').textContent=u.firstName?initial:'👤';
+  document.getElementById('userName').textContent=name;
+  
+  var meta='';
+  if(u.firstName){
+    meta+='<span class="chip">👤 Xaridor</span>';
+    if(u.region)meta+='<span class="chip acc">📍 '+esc(u.region)+'</span>';
+    if(u.phone)meta+='<span class="chip acc">📞 '+esc(u.phone)+'</span>';
+  }else{
+    meta+='<span class="chip">👤 Mehmon</span>';
+    meta+='<span class="chip acc" style="cursor:pointer" onclick="openEdit()">✏️ Ma\'lumot qo\'shish</span>';
+  }
+  document.getElementById('userMeta').innerHTML=meta;
+  
+  var myOrders=S.orders.filter(function(o){
+    if(o.userId&&o.userId===u.userId)return true;
+    if(o.customer&&u.phone&&o.customer.phone===u.phone)return true;
+    return false;
+  });
+  
+  document.getElementById('statOrders').textContent=myOrders.length;
+  document.getElementById('statFavs').textContent=S.favs.length;
+  document.getElementById('statCart').textContent=S.cart.reduce(function(s,i){return s+(Number(i.qty)||0);},0);
+  
+  var th=document.body.dataset.t;
+  document.getElementById('curThemeLbl').textContent=th==='dark'?'Tungi':'Kunduzgi';
+  
+  var lg=DB.get('lang','uz');
+  var lnames={uz:"O'zbek",ru:'Русский',en:'English'};
+  document.getElementById('curLangLbl').textContent=lnames[lg]||"O'zbek";
+  
+  ['uz','ru','en'].forEach(function(k){
+    var el=document.getElementById('langChk_'+k);
+    if(el)el.textContent=k===lg?'✓':'›';
+  });
+  
+  var nf=DB.get('notif','on');
+  document.getElementById('notifToggle').classList.toggle('on',nf==='on');
+}
+
+function openEdit(){
+  var u=S.user||{};
+  document.getElementById('fFirstName').value=u.firstName||'';
+  document.getElementById('fLastName').value=u.lastName||'';
+  document.getElementById('fPhone').value=u.phone||'';
+  document.getElementById('fRegion').value=u.region||'';
+  document.getElementById('fDistrict').value=u.district||'';
+  switchView('vEdit');
+}
+function closeEdit(){switchView('vMain');}
+
+async function saveProfile(){
+  var fn=(document.getElementById('fFirstName').value||'').trim();
+  var ln=(document.getElementById('fLastName').value||'').trim();
+  var ph=(document.getElementById('fPhone').value||'').trim();
+  var rg=document.getElementById('fRegion').value;
+  var dt=(document.getElementById('fDistrict').value||'').trim();
+  
+  if(fn.length<2)return toast('Ismingizni kiriting','e');
+  if(ln.length<2)return toast('Familiyangizni kiriting','e');
+  if(ph.replace(/\D/g,'').length<9)return toast('Telefonni to\'liq kiriting','e');
+  if(!rg)return toast('Viloyatni tanlang','e');
+  
+  var u=Object.assign({},S.user,{
+    firstName:fn,lastName:ln,
+    name:fn+' '+ln,
+    phone:ph,region:rg,district:dt,
+    userId:S.user.userId||('buyer_'+Date.now()),
+    role:S.user.role||'xaridor',
+    icon:S.user.icon||'🛒',
+    updatedAt:new Date().toISOString()
+  });
+  
+  try{
+    await DB.set('user',u);
+    var users=toArray(DB.get('users',[]));
+    var idx=users.findIndex(function(x){return x&&x.phone===ph;});
+    if(idx!==-1)users[idx]=u;
+    else users.push(u);
+    await DB.set('users',users);
+    S.user=u;
+    toast('✅ Saqlandi','o');
+    render();
+    setTimeout(closeEdit,500);
+  }catch(e){
+    toast('Xato: '+(e.message||''),'e');
+  }
+}
+
+async function toggleTheme(){
+  var cur=document.body.dataset.t;
+  var nx=cur==='dark'?'light':'dark';
+  document.body.dataset.t=nx;
+  document.getElementById('thBtn').textContent=nx==='dark'?'☀️':'🌙';
+  try{await DB.set('theme',nx);}catch(e){}
+  render();
+  toast(nx==='dark'?'🌙 Tungi rejim':'☀️ Kunduzgi rejim','o');
+}
+
+function openLang(){switchView('vLang');}
+function closeLang(){switchView('vMain');}
+async function setLang(l){
+  try{await DB.set('lang',l);}catch(e){}
+  render();
+  toast('✅ Til o\'zgartirildi','o');
+}
+
+async function toggleNotif(){
+  var cur=DB.get('notif','on');
+  var nx=cur==='on'?'off':'on';
+  try{await DB.set('notif',nx);}catch(e){}
+  render();
+  toast(nx==='on'?'🔔 Yoqildi':'🔕 O\'chirildi','o');
+}
+
+function openAbout(){switchView('vAbout');}
+function closeAbout(){switchView('vMain');}
+
+function contactSupport(){
+  if(confirm('Qo\'ng\'iroq qilinsinmi?\n\n+998 91 585 04 87')){
+    location.href='tel:+998915850487';
+  }
+}
+
+var _cb=null;
+function openMd(ico,t,d,okText,okCls,cb){
+  document.getElementById('mIco').textContent=ico;
+  document.getElementById('mT').textContent=t;
+  document.getElementById('mD').textContent=d;
+  var b=document.getElementById('mOk');
+  b.textContent=okText||'Tasdiqlash';
+  b.className='mbtn '+(okCls||'r');
+  _cb=cb;
+  document.getElementById('md').classList.add('on');
+}
+function closeMd(){document.getElementById('md').classList.remove('on');_cb=null;}
+function mdConfirm(){if(_cb)_cb();closeMd();}
+
+function confirmLogout(){
+  if(!S.user||!S.user.firstName){
+    toast('Siz allaqachon mehmonsiz','o');
+    return;
+  }
+  openMd('🚪','Chiqish','Hisobdan chiqmoqchimisiz?\n\nSavat va sevimlilar saqlanadi.','Chiqish','r',async function(){
+    try{await DB.remove('user');}catch(e){}
+    toast('👋 Chiqdingiz','o');
+    setTimeout(function(){location.href='index.html';},700);
+  });
+}
+
+function setupListeners(){
+  DB.on('user',function(val){S.user=val||{};render();});
+  DB.on('orders',function(val){S.orders=toArray(val).filter(function(o){return o&&o.id;});render();});
+  DB.on('favs',function(val){S.favs=toArray(val);render();});
+  DB.on('cart',function(val){S.cart=toArray(val);render();});
+}
+
+function init(){
+  var th=DB.get('theme','dark');
+  document.body.dataset.t=th;
+  document.getElementById('thBtn').textContent=th==='dark'?'☀️':'🌙';
+  
+  S.user=DB.get('user',{});
+  S.orders=toArray(DB.get('orders',[])).filter(function(o){return o&&o.id;});
+  S.favs=toArray(DB.get('favs',[]));
+  S.cart=toArray(DB.get('cart',[]));
+  
+  render();
+  
+  if(DB.isReady())onReady();
+  else{
+    window.addEventListener('db:ready',onReady);
+    setTimeout(function(){updateDbStatus('offline','💾 Offline rejim');},3000);
+  }
+  
+  window.addEventListener('db:connection',function(e){
+    updateDbStatus(e.detail.online?'online':'offline',e.detail.online?'🟢 Online':'🔴 Offline');
+  });
+}
+
+function onReady(){
+  console.log('🔥 Firebase tayyor');
+  updateDbStatus('online','🟢 Online — real-time');
+  DB.syncAll().then(function(){
+    S.user=DB.get('user',{});
+    S.orders=toArray(DB.get('orders',[])).filter(function(o){return o&&o.id;});
+    S.favs=toArray(DB.get('favs',[]));
+    S.cart=toArray(DB.get('cart',[]));
+    setupListeners();
+    render();
+  });
+}
+
+init();
+console.log('✅ Profile sahifasi — Firebase bilan');
+</script>
+</body>
+</html>

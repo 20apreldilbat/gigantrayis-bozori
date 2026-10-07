@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1119">
+<title>Qurilish Kalkulyatori — RAYIS</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+<style>
+:root{
+  --bg:#0B1119;--surf:#151C26;--surf2:#1E2733;--brd:#2A3441;
+  --tx:#F1F5F9;--tx2:#94A3B8;--tx3:#64748B;
+  --pri:#10B981;--pri2:#34D399;--priS:#064E3B;
+  --acc:#3B82F6;--accS:#1E3A8A;
+  --ok:#10B981;--wn:#F59E0B;--er:#EF4444;
+  --r1:8px;--r2:12px;--r3:16px;--r4:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.5;min-height:100vh;padding-bottom:120px}
+[data-t="light"]{--bg:#F5F7FA;--surf:#FFFFFF;--surf2:#EEF2F7;--brd:#E2E8F0;--tx:#0F172A;--tx2:#475569;--tx3:#94A3B8}
+[data-t="light"] body{background:var(--bg)}
+.app{max-width:640px;margin:0 auto;padding:16px 16px 120px}
+.hdr{display:flex;align-items:center;gap:10px;padding:12px;background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);margin-bottom:16px;position:sticky;top:8px;z-index:40}
+.hb{width:44px;height:44px;border-radius:var(--r2);background:var(--surf2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--tx);flex-shrink:0}
+.ht{flex:1;min-width:0}
+.ht1{font-size:17px;font-weight:800;line-height:1.2}
+.ht2{font-size:12px;color:var(--tx2);margin-top:2px}
+.prog{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:14px;margin-bottom:16px}
+.pi{display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin-bottom:10px;font-weight:600}
+.pi .c{color:var(--pri2);font-weight:800}
+.pb{display:flex;gap:5px}
+.pbs{flex:1;height:5px;background:var(--surf2);border-radius:3px}
+.pbs.d{background:var(--pri2)}
+.pbs.a{background:var(--pri2);animation:pl 1.5s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.4}}
+.step{display:none}
+.step.on{display:block}
+.sh{margin-bottom:20px}
+.sn{display:inline-block;padding:3px 9px;background:var(--priS);color:var(--pri2);font-size:11px;font-weight:800;border-radius:6px;margin-bottom:8px}
+.st{font-size:26px;font-weight:800;line-height:1.15;margin-bottom:4px}
+.sd{font-size:14px;color:var(--tx2)}
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:18px;margin-bottom:14px}
+.f{margin-bottom:14px}
+.f:last-child{margin-bottom:0}
+.fl{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+.inp,.sel,.txt{width:100%;padding:14px 16px;background:var(--surf2);border:2px solid transparent;border-radius:var(--r2);color:var(--tx);font-size:16px;font-weight:600;font-family:inherit;outline:none}
+.inp:focus,.sel:focus,.txt:focus{border-color:var(--pri2)}
+.sel{cursor:pointer}
+.txt{resize:vertical;min-height:70px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.opts{display:grid;gap:10px}
+.opts.t{grid-template-columns:1fr 1fr}
+.opt{background:var(--surf2);border:2px solid transparent;border-radius:var(--r2);padding:16px;cursor:pointer;text-align:center;position:relative}
+.opt.on{border-color:var(--pri2);background:var(--priS)}
+.opt.on::after{content:"✓";position:absolute;top:8px;right:10px;color:var(--pri2);font-weight:900;font-size:14px}
+.oi{font-size:30px;margin-bottom:6px}
+.ot{font-size:14px;font-weight:700;line-height:1.3}
+.od{font-size:12px;color:var(--tx2);margin-top:3px}
+.info{background:var(--accS);border-left:3px solid var(--acc);border-radius:var(--r2);padding:12px 14px;font-size:14px;line-height:1.5;margin-bottom:14px}
+.info b{color:var(--acc)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btns.one{grid-template-columns:1fr}
+.btns.th{grid-template-columns:1fr 1fr 1fr}
+.btn{padding:15px;border-radius:var(--r2);border:none;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px}
+.bp{background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff}
+.bg{background:var(--surf2);color:var(--tx);border:1px solid var(--brd)}
+.ba{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff}
+.bsm{padding:10px 14px;min-height:40px;font-size:13px}
+.hero{background:linear-gradient(135deg,var(--pri2),var(--pri));border-radius:var(--r4);padding:32px 20px;text-align:center;color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:-50%;right:-30%;width:280px;height:280px;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 70%);border-radius:50%}
+.hl{font-size:13px;font-weight:600;opacity:.95;margin-bottom:6px;position:relative;z-index:1}
+.hv{font-size:32px;font-weight:900;letter-spacing:-.02em;line-height:1.1;position:relative;z-index:1;word-break:break-word}
+.hr{font-size:12px;opacity:.9;margin-top:8px;position:relative;z-index:1}
+.sec{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);margin-bottom:14px;overflow:hidden}
+.sch{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;background:var(--surf2)}
+.sct{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px}
+.scc{font-size:12px;color:var(--tx2);font-weight:600}
+.scb{padding:4px 18px}
+.mr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--brd);gap:8px;font-size:14px}
+.mr:last-child{border-bottom:none}
+.mn{flex:1;min-width:0}
+.mq{color:var(--tx2);font-size:12px;white-space:nowrap;font-weight:600}
+.mp{color:var(--pri2);font-weight:800;white-space:nowrap}
+.mr.tot{border-top:2px solid var(--brd);margin-top:6px;padding-top:14px;font-weight:800}
+.mr.tot .mn,.mr.tot .mp{color:var(--pri2);font-size:16px}
+.imgup{border:2px dashed var(--brd);border-radius:var(--r2);padding:20px;text-align:center;cursor:pointer;background:var(--surf2)}
+.ig2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.ith{position:relative;aspect-ratio:1;border-radius:var(--r1);overflow:hidden;background:var(--surf2);border:1px solid var(--brd)}
+.ith img{width:100%;height:100%;object-fit:cover}
+.idel{position:absolute;top:4px;right:4px;background:var(--er);color:#fff;border:none;width:22px;height:22px;border-radius:50%;font-size:11px;cursor:pointer}
+.fab{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff;border:none;padding:15px 22px;border-radius:100px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(16,185,129,.5);display:flex;align-items:center;gap:8px;z-index:50;font-family:inherit}
+.fab:active{transform:scale(.96)}
+.tst{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+.tst.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tst.e{background:var(--er);color:#fff}
+.tst.o{background:var(--ok);color:#fff}
+.md{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.md.on{display:flex}
+.mbox{background:var(--surf);border-radius:var(--r4) var(--r4) 0 0;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:20px}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.mt{font-size:20px;font-weight:800}
+.mx{width:40px;height:40px;border-radius:50%;background:var(--surf2);border:none;color:var(--tx);font-size:20px;cursor:pointer}
+.qrbox{background:#fff;padding:20px;border-radius:var(--r3);display:inline-block;margin:16px auto}
+@media print{.hdr,.prog,.fab,.btns,.md,.tst{display:none!important}body{background:#fff;color:#000;padding:0}}
+</style>
+</head>
+<body data-t="dark">
+
+<div class="app">
+  <div class="hdr">
+    <button class="hb" onclick="goBack()">←</button>
+    <div class="ht">
+      <div class="ht1" id="ttl">Qurilish Kalkulyatori</div>
+      <div class="ht2" id="sub">Uy qurish narxi</div>
+    </div>
+    <button class="hb" onclick="openProjects()">📁</button>
+    <button class="hb" onclick="toggleTheme()" id="thBtn">☀️</button>
+  </div>
+  <div class="prog" id="progWrap"></div>
+  <div id="content"></div>
+</div>
+
+<button class="fab" id="fab" onclick="nextStep()" style="display:none">
+  <span id="fabT">Keyingi</span><span>→</span>
+</button>
+
+<div class="md" id="md" onclick="if(event.target.id==='md')closeMd()">
+  <div class="mbox" id="mbox"></div>
+</div>
+<div class="tst" id="tst"></div>
+
+<script>
+var PR={
+  beton:{min:320000,max:380000,u:'m³',n:'Beton M200'},
+  tsement:{min:42000,max:50000,u:'qop',n:'Tsement M400'},
+  qum:{min:250000,max:320000,u:'m³',n:'Yuvilgan qum'},
+  shagal:{min:230000,max:280000,u:'m³',n:"Shag'al"},
+  armatura:{min:8200000,max:9000000,u:'tonna',n:'Armatura 12mm'},
+  reka:{min:3000000,max:3600000,u:'m³',n:'Reka'},
+  opalubka:{min:500000,max:650000,u:'m²',n:'Opalubka'},
+  gisht_std:{min:800,max:900,u:'dona',n:"Pishgan g'isht std"},
+  gisht_pol:{min:1000,max:1200,u:'dona',n:"Pishgan g'isht paltarashka"},
+  xom_std:{min:500,max:600,u:'dona',n:"Xom g'isht std"},
+  xom_pol:{min:650,max:750,u:'dona',n:"Xom g'isht paltarashka"},
+  shlakoblok:{min:8000,max:9500,u:'dona',n:'Shlakoblok'},
+  gazoblok600:{min:26000,max:30000,u:'dona',n:'Gazoblok 600×300×200'},
+  gazoblok500:{min:24000,max:28000,u:'dona',n:'Gazoblok 500×300×200'},
+  paxsa:{min:150000,max:200000,u:'m³',n:'Paxsa'},
+  strapila:{min:3000000,max:3600000,u:'m³',n:'Strapila'},
+  qamish:{min:30000,max:40000,u:'dona',n:'Qamish'},
+  boyra:{min:15000,max:25000,u:'m²',n:"Bo'yra"},
+  lombz:{min:120000,max:150000,u:'m³',n:'Lombz'},
+  shifer:{min:75000,max:90000,u:'list',n:'Shifer'},
+  metallocherepitsa:{min:85000,max:105000,u:'m²',n:'Metallocherepitsa'},
+  ondulin:{min:95000,max:115000,u:'m²',n:'Ondulin'},
+  tornov_yupqa:{min:15000,max:20000,u:'pm',n:'Yupqa tornov'},
+  tornov_oddiy:{min:25000,max:35000,u:'pm',n:'Tornov oddiy'},
+  konyok:{min:35000,max:45000,u:'m²',n:'Konyok'},
+  mix70:{min:12000,max:15000,u:'kg',n:'Mix 70'},
+  mix100:{min:13000,max:16000,u:'kg',n:'Mix 100'},
+  mix150:{min:14000,max:17000,u:'kg',n:'Mix 150'},
+  sim4:{min:15000,max:18000,u:'kg',n:'Sim 4'},
+  reka_5x5x6:{min:35000,max:45000,u:'dona',n:'Reka 5×5×6'}
+};
+var LB={
+  beton:{min:100000,max:150000,u:'m³',n:'Beton quyish'},
+  armatura:{min:500000,max:700000,u:'tonna',n:'Armatura'},
+  gisht:{min:800,max:1200,u:'dona',n:"G'isht terish"},
+  shlakoblok:{min:15000,max:25000,u:'dona',n:'Shlakoblok terish'},
+  gazoblok:{min:25000,max:35000,u:'dona',n:'Gazoblok terish'},
+  paxsa:{min:40000,max:60000,u:'m³',n:'Paxsa'},
+  strapila:{min:40000,max:60000,u:'m²',n:'Strapila'},
+  tom_qoplash:{min:35000,max:50000,u:'m²',n:'Tom qoplash'},
+  konyok:{min:20000,max:30000,u:'m²',n:'Konyok'}
+};
+var STEPS=[{k:'s1'},{k:'s2'},{k:'s3'},{k:'s4'},{k:'s5'},{k:'s6'}];
+var S={
+  step:1,
+  d:{
+    area:100,floors:2,wallH:3,rooms:4,
+    found:'lenta',perim:40,lw:.4,lh:.8,slabT:.25,
+    wt:'gazoblok600',inner:20,paxsaW:.6,
+    arm:'ha',apW:.3,apH:.3,apL:40,
+    perem:0,pmW:.3,pmH:.3,pmL:1.5,
+    kol:0,klW:.3,klW2:.3,klH:3,
+    vass:'yoq',vassL:0,
+    strap:'4x14x6',cover:'shifer',tornov:'oddiy',
+    konyok:0,mourl:0,
+    qamish:0,boyra:0,lombz:0,
+    mix70:0,mix100:0,mix150:0,sim4:0,reka:0,
+    work:'brig',photos:[]
+  },
+  prices:JSON.parse(JSON.stringify(PR)),
+  labor:JSON.parse(JSON.stringify(LB)),
+  userP:null,useCus:false,
+  res:null,
+  projects:[],
+  projId:null
+};
+
+function saveL(){try{localStorage.setItem('rayis_calc_v4',JSON.stringify({d:S.d,prices:S.prices,labor:S.labor,userP:S.userP,useCus:S.useCus}));}catch(e){}}
+function loadL(){try{var s=localStorage.getItem('rayis_calc_v4');if(s){var p=JSON.parse(s);if(p.d)S.d=Object.assign(S.d,p.d);if(p.prices)S.prices=Object.assign(S.prices,p.prices);if(p.labor)S.labor=Object.assign(S.labor,p.labor);if(p.userP)S.userP=p.userP;if(p.useCus)S.useCus=p.useCus;}}catch(e){}}
+
+function fmt(n){return Math.round(Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' ')+" so'm";}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function nf(n){var v=Number(n)||0;return Number.isInteger(v)?v.toString():v.toFixed(2).replace(/\.?0+$/,'');}
+function toast(m,tp){
+  var e=document.getElementById('tst');
+  e.textContent=m;
+  e.className='tst on'+(tp==='e'?' e':tp==='o'?' o':'');
+  clearTimeout(e._t);
+  e._t=setTimeout(function(){e.className='tst'+(tp==='e'?' e':tp==='o'?' o':'');},2400);
+}
+function toggleTheme(){
+  var cur=document.body.dataset.t;
+  var nx=cur==='dark'?'light':'dark';
+  document.body.dataset.t=nx;
+  DB.set('theme',nx);
+  document.getElementById('thBtn').textContent=nx==='dark'?'☀️':'🌙';
+}
+function closeMd(){document.getElementById('md').classList.remove('on');}
+function openMd(){document.getElementById('md').classList.add('on');}
+function goBack(){if(S.step===7){S.step=6;render();return;}if(S.step>1){collect();S.step--;render();return;}location.href='home.html';}
+
+function render(){
+  renderProg();
+  var c=document.getElementById('content');
+  if(S.step===1)c.innerHTML=v1();
+  else if(S.step===2)c.innerHTML=v2();
+  else if(S.step===3)c.innerHTML=v3();
+  else if(S.step===4)c.innerHTML=v4();
+  else if(S.step===5)c.innerHTML=v5();
+  else if(S.step===6)c.innerHTML=v6();
+  else if(S.step===7)c.innerHTML=v7();
+  document.getElementById('fab').style.display=S.step<7?'flex':'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderProg(){
+  var w=document.getElementById('progWrap');
+  if(S.step>6){
+    w.innerHTML='<div class="pi"><span>Natija</span><span>✓</span></div><div class="pb"><div class="pbs d" style="flex:1"></div></div>';
+    return;
+  }
+  var b='';
+  for(var i=1;i<=6;i++){
+    var cl='pbs';
+    if(i<S.step)cl+=' d';
+    else if(i===S.step)cl+=' a';
+    b+='<div class="'+cl+'"></div>';
+  }
+  w.innerHTML='<div class="pi"><span>Qadam <span class="c">'+S.step+'</span> / 6</span><span>'+['Loyiha','Poydevor','Devor','Karkas','Tom','Xizmat'][S.step-1]+'</span></div><div class="pb">'+b+'</div>';
+}
+
+function v1(){
+  var d=S.d;
+  return '<div class="step on"><div class="sh"><span class="sn">1</span><div class="st">Loyiha ma\'lumotlari</div><div class="sd">Uy o\'lchamlarini kiriting</div></div>'+
+    '<div class="card">'+
+    '<div class="f"><label class="fl">Uy maydoni (m²)</label><input class="inp" type="number" id="i_area" value="'+d.area+'"></div>'+
+    '<div class="r2">'+
+    '<div class="f"><label class="fl">Qavatlar</label><select class="sel" id="i_floors"><option value="1"'+(d.floors==1?' selected':'')+'>1 qavat</option><option value="2"'+(d.floors==2?' selected':'')+'>2 qavat</option><option value="3"'+(d.floors==3?' selected':'')+'>3 qavat</option></select></div>'+
+    '<div class="f"><label class="fl">Devor balandligi (m)</label><input class="inp" type="number" id="i_wallH" value="'+d.wallH+'" step="0.1"></div>'+
+    '</div>'+
+    '<div class="f"><label class="fl">Xonalar soni</label><input class="inp" type="number" id="i_rooms" value="'+d.rooms+'"></div>'+
+    '</div>'+
+    '<div class="info">💡 Umumiy maydon: <b>'+(d.area*d.floors)+'</b> m²</div></div>';
+}
+
+function v2(){
+  var d=S.d;
+  return '<div class="step on"><div class="sh"><span class="sn">2</span><div class="st">Poydevor</div><div class="sd">Turini tanlang</div></div>'+
+    '<div class="opts t">'+
+    '<div class="opt '+(d.found==='lenta'?'on':'')+'" onclick="pick(\'found\',\'lenta\')"><div class="oi">🔷</div><div class="ot">Lenta</div><div class="od">Tavsiya</div></div>'+
+    '<div class="opt '+(d.found==='plita'?'on':'')+'" onclick="pick(\'found\',\'plita\')"><div class="oi">⬛</div><div class="ot">Plita</div><div class="od">Mustahkam</div></div>'+
+    '</div>'+
+    (d.found==='lenta'?
+      '<div class="card" style="margin-top:14px"><div class="f"><label class="fl">Lenta perimetri (pm)</label><input class="inp" type="number" id="i_perim" value="'+d.perim+'"></div>'+
+      '<div class="r2"><div class="f"><label class="fl">Lenta eni (m)</label><select class="sel" id="i_lw">'+[.3,.4,.5,.6].map(function(v){return '<option value="'+v+'"'+(d.lw==v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></div>'+
+      '<div class="f"><label class="fl">Lenta balandligi (m)</label><select class="sel" id="i_lh">'+[.6,.8,1,1.2].map(function(v){return '<option value="'+v+'"'+(d.lh==v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></div></div></div>':
+      '<div class="card" style="margin-top:14px"><div class="f"><label class="fl">Plita qalinligi (m)</label><select class="sel" id="i_slabT">'+[.2,.25,.3].map(function(v){return '<option value="'+v+'"'+(d.slabT==v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></div></div>')+
+    '</div>';
+}
+
+function v3(){
+  var d=S.d;
+  return '<div class="step on"><div class="sh"><span class="sn">3</span><div class="st">Devor</div><div class="sd">Materialni tanlang</div></div>'+
+    '<div class="card"><div class="f"><label class="fl">Devor turi</label><select class="sel" id="i_wt" onchange="up(\'wt\',this.value)">'+
+    ['gisht_std','gisht_pol','xom_std','xom_pol','shlakoblok','gazoblok600','gazoblok500','paxsa'].map(function(k){return '<option value="'+k+'"'+(d.wt===k?' selected':'')+'>'+S.prices[k].n+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="f"><label class="fl">Ichki devorlar (%)</label><select class="sel" id="i_inner">'+[0,20,30,40].map(function(v){return '<option value="'+v+'"'+(d.inner==v?' selected':'')+'>'+(v===0?'Yo\'q':v+'%')+'</option>';}).join('')+'</select></div>'+
+    (d.wt==='paxsa'?'<div class="f"><label class="fl">Paxsa qalinligi (m)</label><select class="sel" id="i_paxsaW">'+[.5,.6,.7,.8].map(function(v){return '<option value="'+v+'"'+(d.paxsaW==v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></div>':'')+
+    '</div></div>';
+}
+
+function v4(){
+  var d=S.d;
+  return '<div class="step on"><div class="sh"><span class="sn">4</span><div class="st">Ustun va karkas</div><div class="sd">Qo\'shimcha elementlar</div></div>'+
+    '<div class="card">'+
+    '<div class="f"><label class="fl">Armapoyas?</label><select class="sel" id="i_arm" onchange="up(\'arm\',this.value)"><option value="ha"'+(d.arm==='ha'?' selected':'')+'>Ha</option><option value="yoq"'+(d.arm==='yoq'?' selected':'')+'>Yo\'q</option></select></div>'+
+    (d.arm==='ha'?'<div class="r3"><div class="f"><label class="fl">Eni</label><input class="inp" type="number" id="i_apW" value="'+d.apW+'" step="0.05"></div><div class="f"><label class="fl">Baland</label><input class="inp" type="number" id="i_apH" value="'+d.apH+'" step="0.05"></div><div class="f"><label class="fl">Uzunlik</label><input class="inp" type="number" id="i_apL" value="'+d.apL+'"></div></div>':'')+
+    '<div class="f"><label class="fl">Peremichka soni</label><input class="inp" type="number" id="i_perem" value="'+d.perem+'" oninput="up(\'perem\',this.value)"></div>'+
+    (Number(d.perem)>0?'<div class="r3"><div class="f"><label class="fl">Eni</label><input class="inp" type="number" id="i_pmW" value="'+d.pmW+'" step="0.05"></div><div class="f"><label class="fl">Baland</label><input class="inp" type="number" id="i_pmH" value="'+d.pmH+'" step="0.05"></div><div class="f"><label class="fl">Uzunlik</label><input class="inp" type="number" id="i_pmL" value="'+d.pmL+'" step="0.1"></div></div>':'')+
+    '<div class="f"><label class="fl">Kolonna soni</label><input class="inp" type="number" id="i_kol" value="'+d.kol+'" oninput="up(\'kol\',this.value)"></div>'+
+    (Number(d.kol)>0?'<div class="r3"><div class="f"><label class="fl">Eni</label><input class="inp" type="number" id="i_klW" value="'+d.klW+'" step="0.05"></div><div class="f"><label class="fl">W2</label><input class="inp" type="number" id="i_klW2" value="'+d.klW2+'" step="0.05"></div><div class="f"><label class="fl">Baland</label><input class="inp" type="number" id="i_klH" value="'+d.klH+'" step="0.1"></div></div>':'')+
+    '<div class="f"><label class="fl">Vassalash turi</label><select class="sel" id="i_vass"><option value="yoq"'+(d.vass==='yoq'?' selected':'')+'>Yo\'q</option><option value="5x15_6"'+(d.vass==='5x15_6'?' selected':'')+'>5×15×6</option><option value="4x14_6"'+(d.vass==='4x14_6'?' selected':'')+'>4×14×6</option><option value="5x15_4"'+(d.vass==='5x15_4'?' selected':'')+'>5×15×4</option><option value="4x14_4"'+(d.vass==='4x14_4'?' selected':'')+'>4×14×4</option></select></div>'+
+    '<div class="f"><label class="fl">Vassalash soni</label><input class="inp" type="number" id="i_vassL" value="'+d.vassL+'"></div>'+
+    '</div></div>';
+}
+
+function v5(){
+  var d=S.d;
+  return '<div class="step on"><div class="sh"><span class="sn">5</span><div class="st">Tom</div><div class="sd">Materiallar</div></div>'+
+    '<div class="card">'+
+    '<div class="f"><label class="fl">Strapila turi</label><select class="sel" id="i_strap"><option value="5x15_6"'+(d.strap==='5x15_6'?' selected':'')+'>5×15×6</option><option value="4x14_6"'+(d.strap==='4x14_6'?' selected':'')+'>4×14×6</option><option value="4x14_4"'+(d.strap==='4x14_4'?' selected':'')+'>4×14×4</option></select></div>'+
+    '<div class="f"><label class="fl">Qoplama turi</label><select class="sel" id="i_cover"><option value="shifer"'+(d.cover==='shifer'?' selected':'')+'>Shifer</option><option value="metallocherepitsa"'+(d.cover==='metallocherepitsa'?' selected':'')+'>Metallocherepitsa</option><option value="ondulin"'+(d.cover==='ondulin'?' selected':'')+'>Ondulin</option></select></div>'+
+    '<div class="f"><label class="fl">Tornov turi</label><select class="sel" id="i_tornov"><option value="yoq"'+(d.tornov==='yoq'?' selected':'')+'>Yo\'q</option><option value="yupqa"'+(d.tornov==='yupqa'?' selected':'')+'>Yupqa</option><option value="oddiy"'+(d.tornov==='oddiy'?' selected':'')+'>Oddiy</option></select></div>'+
+    '<div class="r2"><div class="f"><label class="fl">Konyok (m²)</label><input class="inp" type="number" id="i_konyok" value="'+d.konyok+'" step="0.1"></div><div class="f"><label class="fl">Mourlant (pm)</label><input class="inp" type="number" id="i_mourl" value="'+d.mourl+'"></div></div>'+
+    '</div>'+
+    '<div class="card" style="background:var(--accS);border-color:var(--acc)">'+
+    '<div style="font-weight:800;font-size:14px;color:var(--acc);margin-bottom:12px">🔧 Qo\'shimcha materiallar</div>'+
+    '<div class="r2"><div class="f"><label class="fl">Qamish</label><input class="inp" type="number" id="i_qamish" value="'+d.qamish+'"></div><div class="f"><label class="fl">Bo\'yra</label><input class="inp" type="number" id="i_boyra" value="'+d.boyra+'" step="0.1"></div></div>'+
+    '<div class="f"><label class="fl">Lombz</label><input class="inp" type="number" id="i_lombz" value="'+d.lombz+'" step="0.1"></div>'+
+    '<div class="r2"><div class="f"><label class="fl">Mix 70</label><input class="inp" type="number" id="i_mix70" value="'+d.mix70+'"></div><div class="f"><label class="fl">Mix 100</label><input class="inp" type="number" id="i_mix100" value="'+d.mix100+'"></div></div>'+
+    '<div class="r2"><div class="f"><label class="fl">Mix 150</label><input class="inp" type="number" id="i_mix150" value="'+d.mix150+'"></div><div class="f"><label class="fl">Sim 4</label><input class="inp" type="number" id="i_sim4" value="'+d.sim4+'"></div></div>'+
+    '<div class="f"><label class="fl">Reka 5×5×6</label><input class="inp" type="number" id="i_reka" value="'+d.reka+'"></div>'+
+    '</div></div>';
+}
+
+function v6(){
+  var d=S.d;
+  return '<div class="step on"><div class="sh"><span class="sn">6</span><div class="st">Xizmat</div><div class="sd">Kim quradi?</div></div>'+
+    '<div class="opts">'+
+    '<div class="opt '+(d.work==='self'?'on':'')+'" onclick="pick(\'work\',\'self\')"><div class="oi">🙋</div><div class="ot">O\'zim</div><div class="od">Usta haqi 0</div></div>'+
+    '<div class="opt '+(d.work==='brig'?'on':'')+'" onclick="pick(\'work\',\'brig\')"><div class="oi">👷</div><div class="ot">Brigada</div><div class="od">Materialning 30%</div></div>'+
+    '<div class="opt '+(d.work==='sup'?'on':'')+'" onclick="pick(\'work\',\'sup\')"><div class="oi">🏆</div><div class="ot">Super brigada</div><div class="od">Materialning 40%</div></div>'+
+    '</div>'+
+    '<div class="btns one" style="margin-top:20px"><button class="btn bp" onclick="calculate()">🧮 Hisoblash</button></div></div>';
+}
+
+function v7(){
+  var r=S.res,d=S.d;
+  if(!r)return '<div class="info">Xato</div>';
+  var wn={self:'O\'zim',brig:'Brigada',sup:'Super brigada'};
+  var mh=r.mats.map(function(m){return '<div class="mr"><div class="mn">'+esc(m.n)+'</div><div class="mq">'+nf(m.qty)+' '+esc(m.u)+'</div><div class="mp">'+fmt(m.sumA)+'</div></div>';}).join('');
+  mh+='<div class="mr tot"><div class="mn">Materiallar jami</div><div></div><div class="mp">'+fmt(r.matA)+'</div></div>';
+  var lh=r.labors.length?r.labors.map(function(l){return '<div class="mr"><div class="mn">'+esc(l.n)+'</div><div class="mq">'+nf(l.qty)+' '+esc(l.u)+'</div><div class="mp">'+fmt(l.sumA)+'</div></div>';}).join('')+'<div class="mr tot"><div class="mn">Xizmat jami</div><div></div><div class="mp">'+fmt(r.labA)+'</div></div>':'<div class="mr"><div class="mn" style="color:var(--tx2)">O\'zim</div></div>';
+  return '<div class="step on"><div class="sh"><span class="sn">✓</span><div class="st">Hisob tayyor!</div><div class="sd">'+d.floors+' qavat · '+d.area+' m² · '+d.rooms+' xona · '+wn[d.work]+'</div></div>'+
+    '<div class="hero"><div class="hl">UMUMIY XARAJAT</div><div class="hv">'+fmt(r.totA)+'</div><div class="hr">Min: '+fmt(r.totA)+' — Max: '+fmt(r.totB)+'</div><div class="hs" style="font-size:12px;opacity:.85;margin-top:4px">1 m² uchun: '+fmt(r.totA/d.area)+'</div></div>'+
+    '<div class="sec"><div class="sch"><div class="sct">🧱 Materiallar</div><div class="scc">'+r.mats.length+'</div></div><div class="scb">'+mh+'</div></div>'+
+    '<div class="sec"><div class="sch"><div class="sct">👷 Xizmat</div><div class="scc">'+r.labors.length+'</div></div><div class="scb">'+lh+'</div></div>'+
+    '<div class="btns one"><button class="btn bp" onclick="addAll()">🛒 Savatga qo\'shish</button></div>'+
+    '<div class="btns" style="margin-top:10px"><button class="btn bg" onclick="openSelCart()">✅ Tanlab</button><button class="btn bg" onclick="openSave()">💾 Saqlash</button></div>'+
+    '<div class="btns th" style="margin-top:10px"><button class="btn bg bsm" onclick="window.print()">📄 PDF</button><button class="btn bg bsm" onclick="shareWA()">💬 WhatsApp</button><button class="btn bg bsm" onclick="exportCSV()">📊 Excel</button></div>'+
+    '<div class="btns" style="margin-top:10px"><button class="btn bg" onclick="showQR()">📱 QR kod</button><button class="btn ba" onclick="sendMaster()">👷 Ustaga</button></div>'+
+    '<div class="btns one" style="margin-top:10px"><button class="btn bg" onclick="openPrices()">💰 Narxlar</button></div>'+
+    '<div class="btns one" style="margin-top:10px"><button class="btn bg" onclick="reset()">🔄 Yangi hisob</button></div></div>';
+}
+
+function collect(){
+  var d=S.d;
+  function g(id){var e=document.getElementById(id);return e?e.value:undefined;}
+  function n(id,fb){var v=parseFloat(g(id));return isNaN(v)?fb:v;}
+  if(S.step===1){d.area=n('i_area',d.area);d.floors=parseInt(g('i_floors'))||d.floors;d.wallH=n('i_wallH',d.wallH);d.rooms=parseInt(g('i_rooms'))||d.rooms;}
+  else if(S.step===2){d.perim=n('i_perim',d.perim);d.lw=n('i_lw',d.lw);d.lh=n('i_lh',d.lh);d.slabT=n('i_slabT',d.slabT);}
+  else if(S.step===3){d.wt=g('i_wt')||d.wt;d.inner=parseInt(g('i_inner'))||0;d.paxsaW=n('i_paxsaW',d.paxsaW);}
+  else if(S.step===4){d.arm=g('i_arm')||d.arm;d.apW=n('i_apW',d.apW);d.apH=n('i_apH',d.apH);d.apL=n('i_apL',d.apL);d.perem=parseInt(g('i_perem'))||0;d.pmW=n('i_pmW',d.pmW);d.pmH=n('i_pmH',d.pmH);d.pmL=n('i_pmL',d.pmL);d.kol=parseInt(g('i_kol'))||0;d.klW=n('i_klW',d.klW);d.klW2=n('i_klW2',d.klW2);d.klH=n('i_klH',d.klH);d.vass=g('i_vass')||d.vass;d.vassL=parseInt(g('i_vassL'))||0;}
+  else if(S.step===5){d.strap=g('i_strap')||d.strap;d.cover=g('i_cover')||d.cover;d.tornov=g('i_tornov')||d.tornov;d.konyok=n('i_konyok',0);d.mourl=n('i_mourl',0);d.qamish=n('i_qamish',0);d.boyra=n('i_boyra',0);d.lombz=n('i_lombz',0);d.mix70=n('i_mix70',0);d.mix100=n('i_mix100',0);d.mix150=n('i_mix150',0);d.sim4=n('i_sim4',0);d.reka=n('i_reka',0);}
+  saveL();
+}
+function up(k,v){collect();S.d[k]=v;saveL();render();}
+function pick(k,v){collect();S.d[k]=v;saveL();render();}
+function nextStep(){collect();if(S.step===1&&(!S.d.area||S.d.area<=0))return toast('Maydonni kiriting','e');if(S.step<6){S.step++;render();}else if(S.step===6)calculate();}
+function reset(){if(!confirm('Yangi hisob?'))return;S.step=1;S.res=null;render();}
+
+function calculate(){
+  collect();
+  var d=S.d,P=S.prices,L=S.labor;
+  var mats=[],labors=[],matA=0,matB=0,labA=0,labB=0;
+  function addM(k,q){if(q<=0)return;var p=P[k];if(!p)return;var a=q*p.min,b=q*p.max;matA+=a;matB+=b;mats.push({n:p.n,qty:q,u:p.u,sumA:a,sumB:b,pMin:p.min,key:k});}
+  function addL(k,q,nm){if(q<=0)return;var l=L[k];if(!l)return;var a=q*l.min,b=q*l.max;labA+=a;labB+=b;labors.push({n:nm||l.n,qty:q,u:l.u,sumA:a,sumB:b});}
+  var bv=(d.found==='lenta')?d.perim*d.lw*d.lh:d.area*d.slabT;bv*=1.02;
+  addM('beton',bv);addM('tsement',bv*6);addM('qum',bv*0.5);addM('shagal',bv*0.85);addM('armatura',bv*0.08);addM('reka',bv*0.02);addM('opalubka',bv*0.5);
+  var th=d.floors*d.wallH,pw=d.found==='lenta'?d.perim:4.5*Math.sqrt(d.area);
+  var woS=pw*th*0.85,wiS=woS*(d.inner/100),wtS=woS+wiS;
+  var wMap={gisht_std:{k:'gisht_std',pm2:400,lb:'gisht'},gisht_pol:{k:'gisht_pol',pm2:300,lb:'gisht'},xom_std:{k:'xom_std',pm2:400,lb:'gisht'},xom_pol:{k:'xom_pol',pm2:300,lb:'gisht'},shlakoblok:{k:'shlakoblok',pm2:13,lb:'shlakoblok'},gazoblok600:{k:'gazoblok600',pm2:8.33,lb:'gazoblok'},gazoblok500:{k:'gazoblok500',pm2:10,lb:'gazoblok'},paxsa:{k:'paxsa',pm2:0.3,lb:'paxsa'}};
+  var w=wMap[d.wt];
+  var wq=d.wt==='paxsa'?wtS*d.paxsaW:wtS*w.pm2;
+  addM(w.k,wq);addL(w.lb,wq);
+  var kv=0;
+  if(d.arm==='ha')kv+=d.apW*d.apH*d.apL;
+  if(d.perem>0)kv+=d.pmW*d.pmH*d.pmL*d.perem;
+  if(d.kol>0)kv+=d.klW*d.klW2*d.klH*d.kol;
+  if(kv>0){addM('beton',kv);addM('armatura',kv*0.08);addL('beton',kv);addL('armatura',kv*0.08);}
+  if(d.vass!=='yoq'&&d.vassL>0)addM('strapila',d.vassL*3*0.03);
+  var rs=d.area*1.4;
+  addM('strapila',rs*0.025);addM('reka',rs*0.018);
+  if(d.qamish>0)addM('qamish',d.qamish);
+  if(d.boyra>0)addM('boyra',d.boyra);
+  if(d.lombz>0)addM('lombz',d.lombz);
+  if(d.mourl>0)addM('reka',d.mourl*0.02);
+  if(d.cover==='shifer')addM('shifer',rs*0.15*8);
+  else if(d.cover==='metallocherepitsa')addM('metallocherepitsa',rs*1.1);
+  else if(d.cover==='ondulin')addM('ondulin',rs*1.1);
+  if(d.tornov==='yupqa')addM('tornov_yupqa',pw);
+  else if(d.tornov==='oddiy')addM('tornov_oddiy',pw);
+  if(d.konyok>0)addM('konyok',d.konyok);
+  if(d.mix70>0)addM('mix70',d.mix70);
+  if(d.mix100>0)addM('mix100',d.mix100);
+  if(d.mix150>0)addM('mix150',d.mix150);
+  if(d.sim4>0)addM('sim4',d.sim4);
+  if(d.reka>0)addM('reka_5x5x6',d.reka);
+  if(d.work!=='self'){
+    addL('beton',bv,'Beton quyish');addL('armatura',bv*0.08,'Armatura');addL('strapila',rs,'Strapila');addL('tom_qoplash',rs,'Tom qoplash');
+    if(d.konyok>0)addL('konyok',d.konyok,'Konyok');
+    var pct=d.work==='sup'?0.40:0.30;
+    var ba=matA*pct,bb=matB*pct;
+    labA+=ba;labB+=bb;
+    labors.push({n:'Brigada ustama ('+(pct*100)+'%)',qty:1,u:'xizmat',sumA:ba,sumB:bb});
+  }
+  S.res={mats:mats,labors:labors,matA:matA,matB:matB,labA:labA,labB:labB,totA:matA+labA,totB:matB+labB};
+  S.step=7;render();toast('✅ Hisob tayyor!','o');
+}
+
+async function addAll(){
+  if(!S.res)return;
+  var cart=DB.get('cart',[]);
+  if(!Array.isArray(cart))cart=[];
+  var n=0;
+  S.res.mats.forEach(function(m){
+    var ex=cart.find(function(c){return c.name===m.n&&c.fromCalc;});
+    if(ex)ex.qty+=m.qty;
+    else cart.push({id:'calc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:m.n,qty:m.qty,unit:m.u,price:m.pMin||(m.sumA/m.qty),emoji:'🧮',fromCalc:true,category:'qurilish'});
+    n++;
+  });
+  await DB.set('cart',cart);
+  toast('✅ '+n+' material savatga','o');
+  setTimeout(function(){if(confirm('Savatga o\'tilsinmi?'))location.href='cart.html';},700);
+}
+
+function openSelCart(){
+  if(!S.res)return;
+  var h='<div class="mh"><div class="mt">✅ Tanlab qo\'shish</div><button class="mx" onclick="closeMd()">✕</button></div>';
+  h+='<div class="info">Kerakli materiallarni belgilang</div><div class="sec"><div class="scb">';
+  S.res.mats.forEach(function(m,i){
+    h+='<label class="mr" style="cursor:pointer"><input type="checkbox" class="cchk" data-i="'+i+'" checked style="width:20px;height:20px;accent-color:var(--pri2)"><div class="mn" style="margin-left:10px">'+esc(m.n)+'</div><div class="mp">'+fmt(m.sumA)+'</div></label>';
+  });
+  h+='</div></div><div class="btns one"><button class="btn bp" onclick="addSel()">✅ Qo\'shish</button></div>';
+  document.getElementById('mbox').innerHTML=h;
+  openMd();
+}
+
+async function addSel(){
+  var chks=document.querySelectorAll('.cchk:checked');
+  if(!chks.length)return toast('Tanlanmadi','e');
+  var cart=DB.get('cart',[]);
+  if(!Array.isArray(cart))cart=[];
+  var n=0;
+  chks.forEach(function(ch){
+    var m=S.res.mats[parseInt(ch.dataset.i)];
+    if(!m)return;
+    var ex=cart.find(function(c){return c.name===m.n&&c.fromCalc;});
+    if(ex)ex.qty+=m.qty;
+    else cart.push({id:'calc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:m.n,qty:m.qty,unit:m.u,price:m.pMin||(m.sumA/m.qty),emoji:'🧮',fromCalc:true,category:'qurilish'});
+    n++;
+  });
+  await DB.set('cart',cart);
+  closeMd();
+  toast('✅ '+n+' material savatga','o');
+}
+
+function openSave(){
+  if(!S.res)return;
+  var def='Loyiha — '+new Date().toLocaleDateString('uz-UZ');
+  var h='<div class="mh"><div class="mt">💾 Saqlash</div><button class="mx" onclick="closeMd()">✕</button></div>';
+  h+='<div class="f"><label class="fl">Loyiha nomi</label><input class="inp" id="pName" value="'+esc(def)+'" maxlength="80"></div>';
+  h+='<div class="btns one"><button class="btn bp" onclick="saveProject()">💾 Saqlash</button></div>';
+  document.getElementById('mbox').innerHTML=h;
+  openMd();
+}
+
+async function saveProject(){
+  var n=(document.getElementById('pName').value||'').trim();
+  if(n.length<2)return toast('Nom kiriting','e');
+  S.d.projectName=n;
+  var id=S.projId||('p_'+Date.now());
+  var p={id:id,name:n,createdAt:Date.now(),updatedAt:Date.now(),data:JSON.parse(JSON.stringify(S.d)),result:{totA:S.res.totA,totB:S.res.totB,matCount:S.res.mats.length}};
+  var projects=DB.get('calc_projects',[]);
+  if(!Array.isArray(projects))projects=[];
+  var idx=projects.findIndex(function(x){return x.id===id;});
+  if(idx!==-1)projects[idx]=p;
+  else projects.unshift(p);
+  await DB.set('calc_projects',projects);
+  S.projId=id;
+  closeMd();
+  toast('✅ Saqlandi','o');
+}
+
+function openProjects(){
+  var projects=DB.get('calc_projects',[]);
+  if(!Array.isArray(projects))projects=[];
+  var h='<div class="mh"><div class="mt">📁 Loyihalarim</div><button class="mx" onclick="closeMd()">✕</button></div>';
+  if(!projects.length){h+='<div class="info">Hozircha loyiha yo\'q</div>';}
+  else{
+    projects.forEach(function(p){
+      h+='<div class="card" onclick="loadProj(\''+p.id+'\')"><div style="font-weight:800;font-size:14px">'+esc(p.name)+'</div><div style="font-size:12px;color:var(--tx2);margin-top:4px">'+new Date(p.createdAt).toLocaleDateString('uz-UZ')+'</div><div style="font-weight:900;color:var(--pri2);margin-top:6px">'+fmt(p.result?p.result.totA:0)+'</div></div>';
+    });
+  }
+  document.getElementById('mbox').innerHTML=h;
+  openMd();
+}
+
+function loadProj(id){
+  var projects=DB.get('calc_projects',[]);
+  if(!Array.isArray(projects))projects=[];
+  var p=projects.find(function(x){return x.id===id;});
+  if(!p)return;
+  S.projId=id;
+  S.d=Object.assign(S.d,p.data||{});
+  closeMd();
+  setTimeout(function(){calculate();},100);
+  toast('✅ Yuklandi','o');
+}
+
+function shareWA(){
+  if(!S.res)return;
+  var s='RAYIS BOZORI — Qurilish hisobi\n\n'+S.d.floors+' qavat · '+S.d.area+' m²\n\n';
+  s+='💰 '+fmt(S.res.totA)+'\nMin: '+fmt(S.res.totA)+' — Max: '+fmt(S.res.totB)+'\n\n🧱 Materiallar:\n';
+  S.res.mats.slice(0,15).forEach(function(m){s+='• '+m.n+': '+nf(m.qty)+' '+m.u+'\n';});
+  s+='\n📞 +998 91 585 04 87';
+  window.open('https://wa.me/?text='+encodeURIComponent(s),'_blank');
+}
+
+function exportCSV(){
+  if(!S.res)return;
+  var rows=[['Nomi','Miqdor','Birlik','Summa']];
+  S.res.mats.forEach(function(m){rows.push([m.n,nf(m.qty),m.u,Math.round(m.sumA)]);});
+  rows.push(['MATERIAL JAMI','','',Math.round(S.res.matA)]);
+  rows.push([]);
+  rows.push(['UMUMIY','','',Math.round(S.res.totA)]);
+  var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='rayis-calc-'+Date.now()+'.csv';a.click();
+  URL.revokeObjectURL(url);
+  toast('📊 Excel yuklandi','o');
+}
+
+function showQR(){
+  if(!S.res)return;
+  var s='RAYIS BOZORI hisobi: '+fmt(S.res.totA);
+  var h='<div class="mh"><div class="mt">📱 QR kod</div><button class="mx" onclick="closeMd()">✕</button></div>';
+  h+='<div style="text-align:center"><div class="qrbox" id="qrb"></div></div>';
+  document.getElementById('mbox').innerHTML=h;
+  openMd();
+  setTimeout(function(){
+    var b=document.getElementById('qrb');
+    if(b){b.innerHTML='';new QRCode(b,{text:s,width:220,height:220,colorDark:'#0F172A',colorLight:'#FFFFFF'});}
+  },100);
+}
+
+function sendMaster(){
+  if(!S.res)return;
+  var h='<div class="mh"><div class="mt">👷 Ustaga yuborish</div><button class="mx" onclick="closeMd()">✕</button></div>';
+  h+='<div class="f"><label class="fl">Ismingiz</label><input class="inp" id="mn" maxlength="60"></div>';
+  h+='<div class="f"><label class="fl">Telefon</label><input class="inp" id="mp" maxlength="20" placeholder="+998 90 123 45 67"></div>';
+  h+='<div class="f"><label class="fl">Manzil</label><input class="inp" id="ma" maxlength="120"></div>';
+  h+='<div class="btns one"><button class="btn ba" onclick="submitMaster()">📤 Yuborish</button></div>';
+  document.getElementById('mbox').innerHTML=h;
+  openMd();
+}
+
+async function submitMaster(){
+  var n=(document.getElementById('mn').value||'').trim();
+  var p=(document.getElementById('mp').value||'').trim();
+  var a=(document.getElementById('ma').value||'').trim();
+  if(n.length<2)return toast('Ism kiriting','e');
+  if(p.length<7)return toast('Telefon kiriting','e');
+  var wo={id:'WR-'+Date.now().toString().slice(-6),type:'construction',title:'Qurilish: '+S.d.area+' m²',clientName:n,clientPhone:p,address:a,description:'Uy qurish',budget:S.res.totA,status:'yangi',createdAt:new Date().toISOString()};
+  var orders=DB.get('work_orders',[]);
+  if(!Array.isArray(orders))orders=[];
+  orders.unshift(wo);
+  await DB.set('work_orders',orders);
+  closeMd();
+  toast('✅ Ustaga yuborildi','o');
+}
+
+function openPrices(){
+  var h='<div class="mh"><div class="mt">💰 Narxlar</div><button class="mx" onclick="closeMd()">✕</button></div>';
+  h+='<div class="opts t" style="margin-bottom:14px"><div class="opt '+(!S.useCus?'on':'')+'" onclick="setPM(false)"><div class="oi">📋</div><div class="ot">Standart</div></div><div class="opt '+(S.useCus?'on':'')+'" onclick="setPM(true)"><div class="oi">✏️</div><div class="ot">O\'z narxim</div></div></div>';
+  if(S.useCus){
+    h+='<div class="info">O\'z narxlaringizni kiriting</div><div class="sec"><div class="scb">';
+    Object.keys(S.prices).forEach(function(k){
+      var p=S.prices[k];var u=S.userP&&S.userP[k]?S.userP[k]:{};
+      h+='<div style="padding:12px 0;border-bottom:1px solid var(--brd)"><div style="font-weight:700;font-size:13px;margin-bottom:6px">'+esc(p.n)+' / '+p.u+'</div><div class="r2"><input class="inp" type="number" data-k="'+k+'" data-t="min" value="'+(u.min||'')+'" placeholder="Min: '+p.min+'"><input class="inp" type="number" data-k="'+k+'" data-t="max" value="'+(u.max||'')+'" placeholder="Max: '+p.max+'"></div></div>';
+    });
+    h+='</div></div>';
+  }
+  h+='<div class="btns one"><button class="btn bp" onclick="applyPrices()">💾 Saqlash</button></div>';
+  document.getElementById('mbox').innerHTML=h;
+  openMd();
+}
+
+function setPM(c){S.useCus=c;if(c&&!S.userP)S.userP={};saveL();openPrices();}
+function applyPrices(){
+  if(S.useCus){
+    var ins=document.querySelectorAll('#mbox input[data-k]');
+    var up={};
+    ins.forEach(function(inp){
+      var k=inp.dataset.k,tp=inp.dataset.t;var v=parseFloat(inp.value);
+      if(!up[k])up[k]={};
+      if(!isNaN(v)&&v>0)up[k][tp]=v;
+    });
+    S.userP=up;
+  }
+  saveL();closeMd();toast('✅ Saqlandi','o');
+  if(S.res)calculate();
+}
+
+(function(){
+  var th=DB.get('theme','dark');
+  if(th)document.body.dataset.t=th;
+  document.getElementById('thBtn').textContent=document.body.dataset.t==='dark'?'☀️':'🌙';
+  loadL();
+  render();
+  console.log('✅ Kalkulyator tayyor');
+})();
+</script>
+</body>
+</html>

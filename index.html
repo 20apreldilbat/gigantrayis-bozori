@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1119">
+<title>Kirish — RAYIS BOZORI</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+
+<style>
+:root{
+  --bg:#0B1119;--surf:#151C26;--surf2:#1E2733;--brd:#2A3441;
+  --tx:#F1F5F9;--tx2:#94A3B8;--tx3:#64748B;
+  --pri:#10B981;--pri2:#34D399;--priS:#064E3B;
+  --acc:#3B82F6;--accS:#1E3A8A;
+  --er:#EF4444;--wn:#F59E0B;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:none}
+body{
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;
+  background:linear-gradient(135deg,#0B1119 0%,#0F1729 100%);
+  color:#F1F5F9;font-size:16px;line-height:1.5;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;-webkit-font-smoothing:antialiased;
+}
+.box{background:#151C26;border:1px solid #2A3441;border-radius:24px;padding:32px 24px;max-width:440px;width:100%;box-shadow:0 4px 12px rgba(0,0,0,.4);position:relative;overflow:hidden}
+.box::before{content:"";position:absolute;top:-50%;right:-30%;width:300px;height:300px;background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%);border-radius:50%;pointer-events:none}
+.logo{text-align:center;margin-bottom:28px;position:relative;z-index:1}
+.logo-r{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#34D399,#10B981);display:inline-flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:0 10px 30px rgba(16,185,129,.35);margin-bottom:12px}
+.logo-t{font-size:22px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+.logo-t span{color:#34D399}
+.logo-s{font-size:11px;color:#64748B;letter-spacing:.15em;margin-top:4px;font-weight:700}
+.step{display:none;position:relative;z-index:1}
+.step.on{display:block;animation:fi .35s}
+@keyframes fi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.stitle{font-size:22px;font-weight:900;text-align:center;margin-bottom:6px}
+.sdesc{font-size:13px;color:#94A3B8;text-align:center;line-height:1.6;margin-bottom:24px}
+.field{margin-bottom:16px}
+.flabel{display:block;font-size:12px;color:#94A3B8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.finput{width:100%;padding:16px;background:#1E2733;border:2px solid transparent;border-radius:16px;color:#F1F5F9;font-size:16px;font-weight:600;font-family:inherit;outline:none;transition:.2s}
+.finput:focus{border-color:#34D399;background:#151C26}
+.finput::placeholder{color:#64748B;font-weight:400}
+.phone-row{display:flex;gap:8px;align-items:stretch}
+.phone-prefix{padding:16px 14px;background:#1E2733;border:2px solid transparent;border-radius:16px;font-size:16px;font-weight:800;color:#34D399;display:flex;align-items:center;justify-content:center;flex-shrink:0;min-width:72px}
+.phone-input{flex:1;font-family:'Courier New',monospace;letter-spacing:1px;font-weight:700}
+.otp-hint{text-align:center;font-size:12px;color:#94A3B8;margin-bottom:16px;line-height:1.6}
+.otp-hint b{color:#34D399;font-weight:800;font-family:'Courier New',monospace}
+.otp-row{display:flex;gap:8px;justify-content:center;margin:20px 0}
+.otp{width:52px;height:60px;text-align:center;font-size:26px;font-weight:900;background:#1E2733;border:2px solid transparent;border-radius:12px;color:#34D399;outline:none;font-family:'Courier New',monospace;transition:.2s}
+.otp:focus{border-color:#34D399;background:#064E3B;transform:scale(1.05)}
+.otp.filled{background:#064E3B;border-color:#34D399}
+.btn{width:100%;padding:16px;border:none;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bp{background:linear-gradient(135deg,#34D399,#10B981);color:#fff;box-shadow:0 4px 14px rgba(16,185,129,.3)}
+.bg{background:#1E2733;color:#F1F5F9;border:1px solid #2A3441}
+.err{color:#EF4444;font-size:13px;text-align:center;margin-top:12px;min-height:20px;font-weight:700}
+.timer{text-align:center;font-size:13px;color:#94A3B8;margin-top:16px;font-weight:600}
+.timer span{color:#34D399;font-weight:800;font-family:'Courier New',monospace}
+.timer a{color:#34D399;cursor:pointer;text-decoration:underline;font-weight:800}
+.demo{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:12px;margin-top:20px;font-size:12px;color:#FBBF24;text-align:center;line-height:1.6;font-weight:600}
+.demo b{color:#F59E0B;font-size:18px;font-weight:900;letter-spacing:3px;font-family:'Courier New',monospace;display:block;margin-top:6px}
+.info{background:#1E3A8A;border-left:3px solid #3B82F6;border-radius:12px;padding:12px 14px;font-size:12px;color:#F1F5F9;line-height:1.6;margin-bottom:16px;font-weight:500}
+.info b{color:#60A5FA;font-weight:800}
+.success{text-align:center;padding:20px 0}
+.suc-ic{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#34D399,#10B981);display:inline-flex;align-items:center;justify-content:center;font-size:42px;color:#fff;margin-bottom:16px}
+.suc-t{font-size:20px;font-weight:900;color:#34D399;margin-bottom:6px}
+.suc-d{font-size:13px;color:#94A3B8;line-height:1.6}
+.fselect{width:100%;padding:16px;background:#1E2733;border:2px solid transparent;border-radius:16px;color:#F1F5F9;font-size:15px;font-weight:600;font-family:inherit;outline:none;cursor:pointer;padding-right:44px;transition:.2s}
+.fselect:focus{border-color:#34D399}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.db-status{position:absolute;top:12px;right:12px;font-size:10px;font-weight:800;padding:4px 10px;border-radius:12px;display:flex;align-items:center;gap:4px;z-index:2}
+.db-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.db-status.connecting{background:rgba(245,158,11,.15);color:#FBBF24}
+.db-status.online{background:rgba(16,185,129,.15);color:#34D399}
+.db-status.offline{background:rgba(239,68,68,.15);color:#F87171}
+.tst{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#F1F5F9;color:#0B1119;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.tst.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tst.e{background:#EF4444;color:#fff}
+.tst.o{background:#10B981;color:#fff}
+@media (max-width:380px){
+  .otp{width:44px;height:54px;font-size:22px}
+  .box{padding:24px 18px}
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <div class="db-status connecting" id="dbStatus">
+    <span class="dot"></span><span id="dbText">Ulanmoqda</span>
+  </div>
+
+  <div class="logo">
+    <div class="logo-r">R</div>
+    <div class="logo-t">RAYIS <span>BOZORI</span></div>
+    <div class="logo-s">MARKETPLACE</div>
+  </div>
+
+  <!-- STEP 1: PHONE -->
+  <div class="step on" id="step1">
+    <div class="stitle">Xush kelibsiz! 👋</div>
+    <div class="sdesc">Telefon raqamingizni kiriting<br>va biz sizga tasdiqlash kodini yuboramiz</div>
+
+    <div class="field">
+      <label class="flabel">Telefon raqam</label>
+      <div class="phone-row">
+        <div class="phone-prefix">+998</div>
+        <input class="finput phone-input" id="phoneInput" type="tel" inputmode="numeric" placeholder="90 123 45 67" maxlength="12" autofocus>
+      </div>
+    </div>
+
+    <button class="btn bp" id="sendBtn" onclick="sendCode()">
+      <span>📱 Kod yuborish</span>
+    </button>
+
+    <div class="info">
+      <b>ℹ️ Demo rejim:</b> SMS yuborilmaydi. Kod ekranda ko'rsatiladi.
+    </div>
+
+    <div class="err" id="err1"></div>
+  </div>
+
+  <!-- STEP 2: OTP -->
+  <div class="step" id="step2">
+    <div class="stitle">Kodni kiriting</div>
+    <div class="otp-hint">
+      <b id="phoneShow">+998 90 123 45 67</b> raqamiga<br>
+      6 xonali kod yuborildi
+    </div>
+
+    <div class="otp-row">
+      <input class="otp" type="tel" inputmode="numeric" maxlength="1" data-i="0">
+      <input class="otp" type="tel" inputmode="numeric" maxlength="1" data-i="1">
+      <input class="otp" type="tel" inputmode="numeric" maxlength="1" data-i="2">
+      <input class="otp" type="tel" inputmode="numeric" maxlength="1" data-i="3">
+      <input class="otp" type="tel" inputmode="numeric" maxlength="1" data-i="4">
+      <input class="otp" type="tel" inputmode="numeric" maxlength="1" data-i="5">
+    </div>
+
+    <button class="btn bp" id="verifyBtn" onclick="verifyCode()">
+      <span>✅ Tasdiqlash</span>
+    </button>
+    <button class="btn bg" onclick="backToPhone()">
+      <span>← Orqaga</span>
+    </button>
+
+    <div class="timer" id="timer">Qayta yuborish: <span>60</span>s</div>
+    <div class="err" id="err2"></div>
+
+    <div class="demo">
+      🧪 Demo kod:
+      <b id="demoCode">000000</b>
+    </div>
+  </div>
+
+  <!-- STEP 3: PROFILE -->
+  <div class="step" id="step3">
+    <div class="stitle">Ma'lumotlaringiz</div>
+    <div class="sdesc">Ism, familiya va viloyatni kiriting</div>
+
+    <div class="row2">
+      <div class="field">
+        <label class="flabel">Ism *</label>
+        <input class="finput" id="firstName" type="text" placeholder="Ali" maxlength="40">
+      </div>
+      <div class="field">
+        <label class="flabel">Familiya *</label>
+        <input class="finput" id="lastName" type="text" placeholder="Valiyev" maxlength="40">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="flabel">Viloyat *</label>
+      <select class="fselect" id="region">
+        <option value="">Tanlang...</option>
+        <option value="Toshkent shahri">Toshkent shahri</option>
+        <option value="Toshkent viloyati">Toshkent viloyati</option>
+        <option value="Samarqand">Samarqand</option>
+        <option value="Buxoro">Buxoro</option>
+        <option value="Navoiy">Navoiy</option>
+        <option value="Qashqadaryo">Qashqadaryo</option>
+        <option value="Surxondaryo">Surxondaryo</option>
+        <option value="Jizzax">Jizzax</option>
+        <option value="Sirdaryo">Sirdaryo</option>
+        <option value="Farg'ona">Farg'ona</option>
+        <option value="Andijon">Andijon</option>
+        <option value="Namangan">Namangan</option>
+        <option value="Xorazm">Xorazm</option>
+        <option value="Qoraqalpog'iston">Qoraqalpog'iston</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="flabel">Tuman / Shahar</label>
+      <input class="finput" id="district" type="text" placeholder="Qumqorgon" maxlength="40">
+    </div>
+
+    <button class="btn bp" id="saveBtn" onclick="saveProfile()">
+      <span>✅ Kirish</span>
+    </button>
+
+    <div class="err" id="err3"></div>
+  </div>
+
+  <!-- STEP 4: SUCCESS -->
+  <div class="step" id="step4">
+    <div class="success">
+      <div class="suc-ic">✓</div>
+      <div class="suc-t">Xush kelibsiz!</div>
+      <div class="suc-d">Hisobingizga muvaffaqiyatli kirdingiz.<br>Asosiy sahifaga o'tilmoqda...</div>
+    </div>
+  </div>
+</div>
+
+<div class="tst" id="tst"></div>
+
+<script>
+var S = {
+  phone: '',
+  generatedCode: '',
+  timerInt: null,
+  timerLeft: 0
+};
+
+function toast(m, tp){
+  var e = document.getElementById('tst');
+  e.textContent = m;
+  e.className = 'tst on' + (tp === 'e' ? ' e' : tp === 'o' ? ' o' : '');
+  clearTimeout(e._t);
+  e._t = setTimeout(function(){ e.className = 'tst' + (tp === 'e' ? ' e' : tp === 'o' ? ' o' : ''); }, 2400);
+}
+function showStep(n){
+  document.querySelectorAll('.step').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById('step' + n).classList.add('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function updateDbStatus(cls, text){
+  var el = document.getElementById('dbStatus');
+  if(!el) return;
+  el.className = 'db-status ' + cls;
+  document.getElementById('dbText').textContent = text;
+}
+
+function findUserByPhone(phone){
+  var users = DB.get('users', []);
+  if (!Array.isArray(users)) users = Object.values(users || {});
+  return users.find(function(u){ return u && u.phone === phone; });
+}
+
+async function saveUserToDb(userData){
+  var users = DB.get('users', []);
+  if (!Array.isArray(users)) users = Object.values(users || {});
+  var idx = users.findIndex(function(u){ return u && u.phone === userData.phone; });
+  if (idx !== -1) users[idx] = userData;
+  else users.push(userData);
+  await DB.set('users', users);
+  await DB.set('user', userData);
+}
+
+function formatPhone(v){
+  var d = String(v || '').replace(/\D/g, '').slice(0, 9);
+  var out = '';
+  if (d.length > 0) out = d.slice(0, 2);
+  if (d.length > 2) out += ' ' + d.slice(2, 5);
+  if (d.length > 5) out += ' ' + d.slice(5, 7);
+  if (d.length > 7) out += ' ' + d.slice(7, 9);
+  return out;
+}
+function phoneDigits(v){ return String(v || '').replace(/\D/g, ''); }
+
+document.getElementById('phoneInput').addEventListener('input', function(e){
+  e.target.value = formatPhone(e.target.value);
+  document.getElementById('err1').textContent = '';
+});
+document.getElementById('phoneInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter'){ e.preventDefault(); sendCode(); }
+});
+
+function sendCode(){
+  var digits = phoneDigits(document.getElementById('phoneInput').value);
+  var err = document.getElementById('err1');
+  err.textContent = '';
+  if (digits.length !== 9){
+    err.textContent = 'To\'liq telefon raqam kiriting';
+    return;
+  }
+  S.phone = '+998' + digits;
+  S.generatedCode = String(Math.floor(100000 + Math.random() * 900000));
+  var btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span><span>Yuborilmoqda...</span>';
+  setTimeout(function(){
+    btn.disabled = false;
+    btn.innerHTML = '<span>📱 Kod yuborish</span>';
+    document.getElementById('phoneShow').textContent = S.phone;
+    document.getElementById('demoCode').textContent = S.generatedCode;
+    document.getElementById('err2').textContent = '';
+    document.querySelectorAll('.otp').forEach(function(o){ o.value = ''; o.classList.remove('filled'); });
+    showStep(2);
+    setTimeout(function(){ document.querySelector('.otp[data-i="0"]').focus(); }, 200);
+    startTimer(60);
+  }, 700);
+}
+
+var otpInputs = document.querySelectorAll('.otp');
+otpInputs.forEach(function(input, i){
+  input.addEventListener('input', function(e){
+    var v = e.target.value.replace(/\D/g, '');
+    e.target.value = v;
+    e.target.classList.toggle('filled', !!v);
+    if (v && i < 5) otpInputs[i + 1].focus();
+    if (getOtp().length === 6) setTimeout(verifyCode, 200);
+  });
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Backspace' && !e.target.value && i > 0){
+      otpInputs[i - 1].focus();
+      otpInputs[i - 1].value = '';
+      otpInputs[i - 1].classList.remove('filled');
+    }
+  });
+});
+
+function getOtp(){
+  return Array.from(otpInputs).map(function(o){ return o.value; }).join('');
+}
+
+async function verifyCode(){
+  var code = getOtp();
+  var err = document.getElementById('err2');
+  err.textContent = '';
+  if (code.length !== 6){
+    err.textContent = '6 xonali kodni to\'liq kiriting';
+    return;
+  }
+  var btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span><span>Tekshirilmoqda...</span>';
+  setTimeout(async function(){
+    if (code !== S.generatedCode){
+      err.textContent = '❌ Kod noto\'g\'ri';
+      btn.disabled = false;
+      btn.innerHTML = '<span>✅ Tasdiqlash</span>';
+      otpInputs.forEach(function(o){ o.value = ''; o.classList.remove('filled'); });
+      otpInputs[0].focus();
+      return;
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<span>✅ Tasdiqlash</span>';
+    stopTimer();
+    var existing = findUserByPhone(S.phone);
+    if (existing){
+      existing.lastLogin = new Date().toISOString();
+      try {
+        await DB.set('user', existing);
+        var users = DB.get('users', []);
+        if (!Array.isArray(users)) users = Object.values(users || {});
+        var idx = users.findIndex(function(u){ return u && u.phone === S.phone; });
+        if (idx !== -1) users[idx] = existing;
+        await DB.set('users', users);
+      } catch(e) {}
+      showStep(4);
+      setTimeout(function(){ location.href = 'home.html'; }, 1200);
+    } else {
+      showStep(3);
+      setTimeout(function(){ document.getElementById('firstName').focus(); }, 200);
+    }
+  }, 600);
+}
+
+function backToPhone(){
+  stopTimer();
+  showStep(1);
+  document.getElementById('err2').textContent = '';
+  otpInputs.forEach(function(o){ o.value = ''; o.classList.remove('filled'); });
+}
+
+function startTimer(sec){
+  stopTimer();
+  S.timerLeft = sec;
+  updateTimer();
+  S.timerInt = setInterval(function(){
+    S.timerLeft--;
+    if (S.timerLeft <= 0){
+      stopTimer();
+      document.getElementById('timer').innerHTML = '<a onclick="resendCode()">Kodni qayta yuborish</a>';
+    } else updateTimer();
+  }, 1000);
+}
+function updateTimer(){
+  document.getElementById('timer').innerHTML = 'Qayta yuborish: <span>' + S.timerLeft + '</span>s';
+}
+function stopTimer(){
+  if (S.timerInt){ clearInterval(S.timerInt); S.timerInt = null; }
+}
+function resendCode(){
+  S.generatedCode = String(Math.floor(100000 + Math.random() * 900000));
+  document.getElementById('demoCode').textContent = S.generatedCode;
+  otpInputs.forEach(function(o){ o.value = ''; o.classList.remove('filled'); });
+  otpInputs[0].focus();
+  document.getElementById('err2').textContent = '';
+  startTimer(60);
+  toast('📱 Yangi kod yuborildi', 'o');
+}
+
+async function saveProfile(){
+  var fn = (document.getElementById('firstName').value || '').trim();
+  var ln = (document.getElementById('lastName').value || '').trim();
+  var rg = document.getElementById('region').value;
+  var dt = (document.getElementById('district').value || '').trim();
+  var err = document.getElementById('err3');
+  err.textContent = '';
+  if (fn.length < 2){ err.textContent = 'Ismingizni kiriting'; return; }
+  if (ln.length < 2){ err.textContent = 'Familiyangizni kiriting'; return; }
+  if (!rg){ err.textContent = 'Viloyatni tanlang'; return; }
+  var btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span><span>Saqlanmoqda...</span>';
+  var userId = 'buyer_' + phoneDigits(S.phone);
+  var userData = {
+    userId: userId, phone: S.phone,
+    firstName: fn, lastName: ln,
+    name: fn + ' ' + ln,
+    region: rg, district: dt,
+    role: 'xaridor', icon: '🛒',
+    createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString()
+  };
+  try { await saveUserToDb(userData); } catch(e) {}
+  btn.disabled = false;
+  btn.innerHTML = '<span>✅ Kirish</span>';
+  showStep(4);
+  setTimeout(function(){ location.href = 'home.html'; }, 1200);
+}
+
+window.addEventListener('db:ready', function(){
+  updateDbStatus('online', 'Online');
+});
+window.addEventListener('db:connection', function(e){
+  if (e.detail.online) updateDbStatus('online', 'Online');
+  else updateDbStatus('offline', 'Offline');
+});
+setTimeout(function(){
+  if (!DB.isReady()) updateDbStatus('offline', 'Offline rejim');
+}, 3000);
+
+(function(){
+  var th = DB.get('theme', 'dark');
+  if (th) document.body.dataset.t = th;
+})();
+
+(function(){
+  var u = DB.get('user', null);
+  if (u && u.userId && u.firstName){
+    location.href = 'home.html';
+  }
+})();
+
+console.log('✅ Index.html — Firebase bilan tayyor');
+</script>
+</body>
+</html>

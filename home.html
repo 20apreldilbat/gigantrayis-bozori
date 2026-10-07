@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1119">
+<title>RAYIS BOZORI</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+
+<style>
+:root{
+  --bg:#0B1119;--surf:#151C26;--surf2:#1E2733;--brd:#2A3441;
+  --tx:#F1F5F9;--tx2:#94A3B8;--tx3:#64748B;
+  --pri:#10B981;--pri2:#34D399;--priS:#064E3B;
+  --acc:#3B82F6;--accS:#1E3A8A;
+  --er:#EF4444;--wn:#F59E0B;--pu:#8B5CF6;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:none}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.5;min-height:100vh;padding-bottom:90px;-webkit-font-smoothing:antialiased}
+
+.app{max-width:640px;margin:0 auto;padding:14px}
+
+.hdr{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:12px;margin-bottom:14px;position:sticky;top:8px;z-index:40;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.htop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.logo{display:flex;align-items:center;gap:10px;flex:1}
+.logoR{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#34D399,#10B981);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(16,185,129,.3)}
+.logoT{font-size:18px;font-weight:900;letter-spacing:.02em;line-height:1}
+.logoT span{color:#34D399}
+.logoS{font-size:10px;color:#64748B;letter-spacing:.15em;margin-top:2px}
+.hicons{display:flex;gap:8px}
+.hbtn{position:relative;width:42px;height:42px;border-radius:12px;background:var(--surf2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--tx);transition:.2s;flex-shrink:0}
+.hbtn:active{transform:scale(.92)}
+.search{display:flex;align-items:center;gap:10px;background:var(--surf2);border:1px solid var(--brd);border-radius:12px;padding:11px 14px;cursor:pointer}
+.search:active{transform:scale(.99);border-color:#34D399}
+.search .ic{font-size:18px;color:#34D399}
+.search .ph{font-size:14px;color:#64748B;flex:1}
+
+.greet{padding:6px 4px 14px}
+.greet h2{font-size:22px;font-weight:800;margin-bottom:2px;line-height:1.2}
+.greet p{font-size:13px;color:#94A3B8}
+
+.db-status{margin:0 4px 14px;padding:10px 14px;border-radius:12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+.db-status.connecting{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#FBBF24}
+.db-status.online{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#34D399}
+.db-status.offline{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#F87171}
+.db-status .dot{width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.banner{background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:16px;padding:16px;margin-bottom:16px;position:relative;overflow:hidden;cursor:pointer;box-shadow:0 8px 24px rgba(139,92,246,.25)}
+.banner::after{content:"🏗";position:absolute;right:-10px;top:-20px;font-size:110px;opacity:.15}
+.banner .badge{display:inline-block;background:rgba(255,255,255,.25);color:#fff;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.05em;margin-bottom:8px}
+.banner h3{color:#fff;font-size:18px;font-weight:900;margin-bottom:4px}
+.banner p{color:rgba(255,255,255,.9);font-size:12px;margin-bottom:12px}
+.banner button{background:#fff;color:#6D28D9;padding:9px 16px;border-radius:12px;font-size:13px;font-weight:800;border:none;cursor:pointer}
+
+.stitle{display:flex;justify-content:space-between;align-items:center;margin:20px 4px 12px}
+.stitle h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:6px}
+.stitle h3 span{font-size:12px;color:#64748B;font-weight:600}
+.stitle a{font-size:13px;color:#34D399;font-weight:700;cursor:pointer;text-decoration:none}
+
+.ggrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gcard{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:16px 14px;cursor:pointer;transition:.2s}
+.gcard:active{transform:scale(.97);border-color:#34D399;background:#064E3B}
+.gic{font-size:32px;margin-bottom:8px}
+.gn{font-size:14px;font-weight:800;line-height:1.25;margin-bottom:4px}
+.gd{font-size:11px;color:#94A3B8;line-height:1.3}
+.gc{font-size:11px;color:#34D399;font-weight:700;margin-top:8px}
+
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcard{background:var(--surf);border:1px solid var(--brd);border-radius:12px;overflow:hidden;cursor:pointer;transition:.2s;position:relative}
+.pcard:active{transform:scale(.98)}
+.pimg{width:100%;aspect-ratio:1;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;overflow:hidden}
+.pimg img{width:100%;height:100%;object-fit:cover}
+.pimg .heart{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.5);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
+.pimg .heart.on{color:#EC4899}
+.pinfo{padding:10px}
+.pn{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:4px;min-height:34px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prt{display:flex;align-items:center;gap:3px;font-size:11px;margin-bottom:6px}
+.prt .st{color:#F59E0B;letter-spacing:.5px}
+.prt .num{color:#F59E0B;font-weight:800}
+.prt .cnt{color:#64748B}
+.pp{font-size:15px;font-weight:900;color:#34D399}
+.ppu{font-size:11px;color:#64748B;font-weight:600}
+.padd{margin-top:8px;width:100%;padding:9px;background:linear-gradient(135deg,#34D399,#10B981);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+
+.sk{background:linear-gradient(90deg,#151C26 25%,#1E2733 50%,#151C26 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:12px;aspect-ratio:.75}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.empty{text-align:center;padding:40px 20px;color:#64748B;font-size:14px}
+.empty .ic{font-size:54px;margin-bottom:10px;opacity:.4}
+
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--brd);display:flex;justify-content:space-around;padding:8px 0 calc(8px + var(--safe-b));z-index:100;max-width:640px;margin:0 auto;box-shadow:0 -4px 12px rgba(0,0,0,.2)}
+.nb{background:none;border:none;color:#64748B;font-size:10px;font-weight:600;padding:6px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;position:relative;font-family:inherit}
+.nb.on{color:#34D399}
+.nb:active{transform:scale(.92)}
+.nb .ic{font-size:22px}
+.nb .cnt{position:absolute;top:0;right:20%;background:#EF4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surf)}
+
+.tst{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(80px);background:#F1F5F9;color:#0B1119;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+.tst.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tst.e{background:#EF4444;color:#fff}
+.tst.o{background:#10B981;color:#fff}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="hdr">
+    <div class="htop">
+      <div class="logo">
+        <div class="logoR">R</div>
+        <div>
+          <div class="logoT">RAYIS <span>BOZORI</span></div>
+          <div class="logoS">MARKETPLACE</div>
+        </div>
+      </div>
+      <div class="hicons">
+        <button class="hbtn" onclick="toggleTheme()" id="thBtn">☀️</button>
+        <button class="hbtn" onclick="location.href='profile.html'">👤</button>
+      </div>
+    </div>
+    <div class="search" onclick="location.href='search.html'">
+      <span class="ic">🔍</span>
+      <span class="ph">Mahsulot, xizmat yoki usta qidirish...</span>
+    </div>
+  </div>
+
+  <div class="db-status connecting" id="dbStatus">
+    <span class="dot"></span>
+    <span id="dbStatusText">🔥 Firebase ulanmoqda...</span>
+  </div>
+
+  <div class="greet">
+    <h2 id="greetName">Salom! 👋</h2>
+    <p id="greetSub">Rayis Bozori — hayotingiz uchun hamma narsa</p>
+  </div>
+
+  <div class="banner" onclick="location.href='kalkulyator.html'">
+    <span class="badge">⭐ YANGI</span>
+    <h3>Qurilish Kalkulyatori</h3>
+    <p>Uy qurish narxini bilib oling — 6 qadamda</p>
+    <button onclick="event.stopPropagation();location.href='kalkulyator.html'">Hisoblash →</button>
+  </div>
+
+  <div class="stitle"><h3>📚 Asosiy bo'limlar</h3></div>
+  <div class="ggrid" id="groups"></div>
+
+  <div class="stitle">
+    <h3>🔥 Mashhur mahsulotlar <span id="prodCnt"></span></h3>
+    <a onclick="location.href='search.html'">Barchasi →</a>
+  </div>
+  <div id="productsWrap">
+    <div class="pgrid">
+      <div class="sk"></div><div class="sk"></div>
+      <div class="sk"></div><div class="sk"></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb on" onclick="location.href='home.html'"><span class="ic">🏠</span><span>Bosh</span></button>
+  <button class="nb" onclick="location.href='search.html'"><span class="ic">🔍</span><span>Qidiruv</span></button>
+  <button class="nb" onclick="location.href='kalkulyator.html'"><span class="ic">🧮</span><span>Kalkulyator</span></button>
+  <button class="nb" onclick="location.href='cart.html'"><span class="ic">🛒</span><span>Savat</span><span class="cnt" id="navCartCnt" style="display:none">0</span></button>
+  <button class="nb" onclick="location.href='profile.html'"><span class="ic">👤</span><span>Profil</span></button>
+</div>
+
+<div class="tst" id="tst"></div>
+
+<script>
+var GROUPS=[
+  {id:'savdo',n:'Savdo',e:'🛒',d:'Mahsulotlar va tovarlar',cnt:16},
+  {id:'xizmat',n:'Xizmatlar',e:'🔧',d:'Ustalar va mutaxassislar',cnt:24},
+  {id:'qurilish',n:'Qurilish',e:'🏗',d:'Kalkulyator va materiallar',cnt:8},
+  {id:'ustalar',n:'Ustalar',e:'👷',d:'Brigadalar va ustalar',cnt:18},
+  {id:'mulk',n:'Mulk',e:'🏠',d:'Uy, yer, ofis',cnt:12},
+  {id:'ijara',n:'Ijara',e:'🚜',d:'Uskuna va asboblar',cnt:10},
+  {id:'transport',n:'Transport',e:'🚚',d:'Yuk va yo\'lovchi',cnt:12},
+  {id:'med',n:'Tibbiyot',e:'💊',d:'Shifokor va sog\'liq',cnt:16},
+  {id:'edu',n:'Ta\'lim',e:'📚',d:'Repetitor va kurslar',cnt:14},
+  {id:'gozal',n:'Go\'zallik',e:'💄',d:'Sartarosh va kosmetolog',cnt:10},
+  {id:'erkaklar',n:'Erkaklar uchun',e:'👨',d:'Xizmatlar',cnt:12},
+  {id:'ayollar',n:'Ayollar uchun',e:'👩',d:'Xizmatlar',cnt:12}
+];
+
+var S = { products: [], user: null, ready: false };
+
+function fmt(n){return Math.round(Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' ')+" so'm";}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,tp){
+  var e=document.getElementById('tst');
+  e.textContent=m;
+  e.className='tst on'+(tp==='e'?' e':tp==='o'?' o':'');
+  clearTimeout(e._t);
+  e._t=setTimeout(function(){e.className='tst'+(tp==='e'?' e':tp==='o'?' o':'');},2400);
+}
+function toggleTheme(){
+  var cur=document.body.dataset.t||'dark';
+  var nx=cur==='dark'?'light':'dark';
+  document.body.dataset.t=nx;
+  DB.set('theme',nx);
+  document.getElementById('thBtn').textContent=nx==='dark'?'☀️':'🌙';
+}
+
+function renderGroups(){
+  var h='';
+  GROUPS.forEach(function(g){
+    h+='<div class="gcard" onclick="location.href=\'search.html?cat='+g.id+'\'">'+
+      '<div class="gic">'+g.e+'</div>'+
+      '<div class="gn">'+esc(g.n)+'</div>'+
+      '<div class="gd">'+esc(g.d)+'</div>'+
+      '<div class="gc">'+g.cnt+' ta ›</div>'+
+    '</div>';
+  });
+  document.getElementById('groups').innerHTML=h;
+}
+
+function renderProducts(){
+  var wrap=document.getElementById('productsWrap');
+  var products=S.products;
+  if(products&&!Array.isArray(products))products=Object.values(products);
+  if(!Array.isArray(products))products=[];
+  var valid=products.filter(function(p){return p&&p.name&&p.price>0;});
+  document.getElementById('prodCnt').textContent='('+valid.length+')';
+  if(!valid.length){
+    wrap.innerHTML='<div class="empty"><div class="ic">📦</div><p>Hozircha mahsulot yo\'q.<br>Sotuvchilar tez orada qo\'shadi!</p></div>';
+    return;
+  }
+  var h='<div class="pgrid">';
+  valid.slice(0,20).forEach(function(p){h+=productCard(p);});
+  h+='</div>';
+  wrap.innerHTML=h;
+}
+
+function productCard(p){
+  var id=p.id||p._id;
+  var img=p.images&&p.images[0]?'<img src="'+p.images[0]+'">':(p.emoji||'📦');
+  var rt=p.rt||5.0;
+  var rc=p.rc||0;
+  return '<div class="pcard" onclick="location.href=\'product.html?id='+id+'\'">'+
+    '<div class="pimg">'+img+'<div class="heart" onclick="event.stopPropagation();toggleFav(\''+id+'\')">🤍</div></div>'+
+    '<div class="pinfo">'+
+      '<div class="pn">'+esc(p.name)+'</div>'+
+      '<div class="prt"><span class="st">⭐</span><span class="num">'+Number(rt).toFixed(1)+'</span><span class="cnt">('+rc+')</span></div>'+
+      '<div class="pp">'+fmt(p.price)+'</div>'+
+      '<div class="ppu">/ '+esc(p.unit||'dona')+'</div>'+
+      '<button class="padd" onclick="event.stopPropagation();addToCart(\''+id+'\')">🛒 Savatga</button>'+
+    '</div>'+
+  '</div>';
+}
+
+async function toggleFav(id){
+  var favs=DB.get('favs',[]);
+  if(!Array.isArray(favs))favs=[];
+  var i=favs.indexOf(id);
+  if(i===-1){favs.push(id);toast('❤️ Saqlandi','o');}
+  else{favs.splice(i,1);toast('O\'chirildi');}
+  await DB.set('favs',favs);
+}
+
+async function addToCart(id){
+  var products=S.products;
+  if(!Array.isArray(products))products=Object.values(products);
+  var p=products.find(function(x){return String(x.id)===String(id)||String(x._id)===String(id);});
+  if(!p)return toast('Topilmadi','e');
+  var cart=DB.get('cart',[]);
+  if(!Array.isArray(cart))cart=[];
+  var ex=cart.find(function(c){return String(c.id)===String(id);});
+  if(ex){ex.qty=(ex.qty||1)+1;}
+  else{
+    cart.push({
+      id:p.id||p._id,name:p.name,price:p.price,
+      unit:p.unit||'dona',emoji:p.emoji||'📦',
+      images:p.images||[],qty:1
+    });
+  }
+  await DB.set('cart',cart);
+  updateCartBadge();
+  toast('✅ Savatga qo\'shildi','o');
+}
+
+function updateCartBadge(){
+  var cart=DB.get('cart',[]);
+  if(!Array.isArray(cart))cart=[];
+  var cnt=cart.reduce(function(s,i){return s+(Number(i.qty)||0);},0);
+  var el=document.getElementById('navCartCnt');
+  if(cnt>0){el.textContent=cnt>99?'99+':cnt;el.style.display='flex';}
+  else el.style.display='none';
+}
+
+function updateDbStatus(status,text){
+  var el=document.getElementById('dbStatus');
+  el.className='db-status '+status;
+  document.getElementById('dbStatusText').textContent=text;
+}
+
+function setupListeners(){
+  DB.on('products',function(products){
+    S.products=products||[];
+    renderProducts();
+  });
+  DB.on('cart',function(){updateCartBadge();});
+  DB.on('theme',function(theme){if(theme)document.body.dataset.t=theme;});
+}
+
+function init(){
+  var th=DB.get('theme','dark');
+  document.body.dataset.t=th;
+  document.getElementById('thBtn').textContent=th==='dark'?'☀️':'🌙';
+  S.user=DB.get('user',{});
+  if(S.user&&S.user.firstName){
+    document.getElementById('greetName').textContent='Salom, '+S.user.firstName+'! 👋';
+    if(S.user.region)document.getElementById('greetSub').textContent='📍 '+S.user.region;
+  }
+  renderGroups();
+  updateCartBadge();
+  if(DB.isReady())onReady();
+  else{
+    window.addEventListener('db:ready',onReady);
+    setTimeout(function(){
+      if(!S.ready){
+        updateDbStatus('offline','💾 Offline rejim');
+        loadFromLocal();
+      }
+    },3000);
+  }
+  window.addEventListener('db:connection',function(e){
+    if(e.detail.online)updateDbStatus('online','🟢 Firebase ulangan');
+    else updateDbStatus('offline','🔴 Offline — saqlanmoqda');
+  });
+}
+
+function onReady(){
+  S.ready=true;
+  updateDbStatus('online','🟢 Firebase ulangan');
+  DB.syncAll().then(function(){
+    setupListeners();
+    var products=DB.get('products',[]);
+    if(!products||(Array.isArray(products)&&products.length===0)){
+      loadFromLocal();
+    }else{
+      S.products=products;
+      renderProducts();
+    }
+  });
+}
+
+function loadFromLocal(){
+  try{
+    var old=JSON.parse(localStorage.getItem('rayis_products')||'[]');
+    if(old&&old.length){S.products=old;renderProducts();}
+  }catch(e){}
+}
+
+init();
+console.log('✅ Home sahifasi tayyor');
+</script>
+</body>
+</html>

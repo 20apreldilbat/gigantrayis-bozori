@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1119">
+<title>Ijarachi paneli — RAYIS BOZORI</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+
+<style>
+:root{
+  --bg:#0B1119;--surf:#151C26;--surf2:#1E2733;--brd:#2A3441;
+  --tx:#F1F5F9;--tx2:#94A3B8;--tx3:#64748B;
+  --pri:#10B981;--pri2:#34D399;--priS:#064E3B;
+  --acc:#3B82F6;--accS:#1E3A8A;
+  --er:#EF4444;--wn:#F59E0B;--pu:#8B5CF6;
+  --rt:#8B5CF6;--rtS:#4C1D95;
+  --r1:8px;--r2:12px;--r3:16px;--r4:24px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+[data-t="light"]{
+  --bg:#F5F7FA;--surf:#FFFFFF;--surf2:#EEF2F7;--brd:#E2E8F0;
+  --tx:#0F172A;--tx2:#475569;--tx3:#94A3B8;
+  --pri:#059669;--pri2:#10B981;--priS:#ECFDF5;
+  --acc:#2563EB;--accS:#EFF6FF;
+  --rt:#7C3AED;--rtS:#EDE9FE;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:none}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.5;min-height:100vh;padding-bottom:100px;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+
+.app{max-width:640px;margin:0 auto;padding:14px}
+
+.hdr{background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:var(--r3);padding:14px;margin-bottom:14px;position:sticky;top:8px;z-index:40;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.htop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.brand{display:flex;align-items:center;gap:10px;flex:1}
+.brand-r{width:38px;height:38px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#6D28D9}
+.brand-t{font-size:15px;font-weight:800;color:#fff;line-height:1.1}
+.brand-t span{color:rgba(255,255,255,.7)}
+.brand-s{font-size:10px;color:rgba(255,255,255,.7);letter-spacing:.1em;margin-top:2px}
+.hbtn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 12px;border-radius:var(--r2);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.hbtn:active{transform:scale(.96)}
+.hinfo{display:flex;align-items:center;gap:10px;color:#fff;font-size:12px}
+.hinfo .av{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px}
+.hinfo .nm{font-weight:800}
+.hinfo .badge{background:#fff;color:#6D28D9;font-size:9px;font-weight:900;padding:2px 6px;border-radius:6px}
+
+.db-status{margin:0 4px 14px;padding:8px 12px;border-radius:var(--r2);font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px}
+.db-status.connecting{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#FBBF24}
+.db-status.online{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#34D399}
+.db-status.offline{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#F87171}
+.db-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 4px 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:10px 16px;background:var(--surf);border:1px solid var(--brd);border-radius:20px;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:inherit;position:relative}
+.tab.on{background:var(--rtS);border-color:var(--rt);color:var(--rt);font-weight:800}
+.tab .badge{background:var(--er);color:#fff;font-size:9px;font-weight:900;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kpi{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r2);padding:14px}
+.kpi .v{font-size:24px;font-weight:900;color:var(--rt);line-height:1}
+.kpi .v.green{color:var(--pri2)}
+.kpi .v.yellow{color:var(--wn)}
+.kpi .v.blue{color:var(--acc)}
+.kpi .l{font-size:11px;color:var(--tx2);margin-top:6px;font-weight:700;text-transform:uppercase}
+
+.sec{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);margin-bottom:14px;overflow:hidden}
+.sech{padding:14px 16px;background:var(--surf2);border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.sect{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
+.sect .num{width:22px;height:22px;border-radius:50%;background:var(--rtS);color:var(--rt);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.secb{padding:16px}
+
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;font-size:13px;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.flabel .hint{font-size:11px;color:var(--tx3);font-weight:500}
+.finput,.fselect,.ftextarea{width:100%;padding:14px;background:var(--surf2);border:2px solid transparent;border-radius:var(--r2);color:var(--tx);font-size:15px;font-family:inherit;outline:none;transition:.2s;font-weight:500}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--rt);background:var(--surf)}
+.finput::placeholder,.ftextarea::placeholder{color:var(--tx3);font-weight:400}
+.ftextarea{resize:vertical;min-height:80px}
+.fselect{-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394A3B8'><path d='M8 12L2 6h12z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+.imgup{border:2px dashed var(--brd);border-radius:var(--r2);padding:20px;text-align:center;cursor:pointer;background:var(--surf2);transition:.2s}
+.imgup:active{border-color:var(--rt);background:var(--rtS)}
+.imgup .ic{font-size:32px;margin-bottom:6px}
+.imgup .t{font-size:13px;font-weight:800;color:var(--rt)}
+.imgup .h{font-size:11px;color:var(--tx3);margin-top:4px}
+.imgprev{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.imgpv{position:relative;aspect-ratio:1;border-radius:var(--r2);overflow:hidden;background:var(--surf2);border:1px solid var(--brd)}
+.imgpv img{width:100%;height:100%;object-fit:cover}
+.imgpv .rm{position:absolute;top:4px;right:4px;background:var(--er);color:#fff;width:24px;height:24px;border-radius:50%;font-size:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.imgpv .up{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-direction:column;gap:4px}
+
+.btn{padding:14px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bp{background:linear-gradient(135deg,var(--rt),#6D28D9);color:#fff}
+.bg{background:var(--surf2);color:var(--tx);border:1px solid var(--brd)}
+.ba{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff}
+.br{background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff}
+.bgr{background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff}
+.bsm{padding:10px 14px;font-size:12px;width:auto;min-height:auto}
+
+.row{display:flex;gap:12px;padding:12px;background:var(--surf2);border-radius:var(--r2);margin-bottom:8px;align-items:center}
+.row:last-child{margin-bottom:0}
+.row .img{width:60px;height:60px;border-radius:var(--r2);background:var(--surf);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden}
+.row .img img{width:100%;height:100%;object-fit:cover}
+.row .info{flex:1;min-width:0}
+.row .n{font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .m{font-size:11px;color:var(--tx2);margin-bottom:3px}
+.row .p{font-size:14px;font-weight:900;color:var(--rt)}
+.row .p span{font-size:10px;color:var(--tx3);font-weight:600}
+.row .rt{font-size:11px;color:#F59E0B;font-weight:700;margin-top:2px}
+.row .stock{font-size:11px;color:var(--pri2);font-weight:700;margin-top:2px}
+.row .act{display:flex;gap:6px;flex-shrink:0}
+.row .abtn{width:36px;height:36px;border-radius:var(--r2);border:1px solid var(--brd);background:var(--surf);color:var(--tx);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.row .abtn:active{transform:scale(.9)}
+.row .abtn.edit{background:rgba(59,130,246,.15);color:#60A5FA}
+.row .abtn.del{background:rgba(239,68,68,.15);color:#F87171}
+
+.order{background:var(--surf2);border-radius:var(--r2);padding:14px;margin-bottom:10px;border-left:3px solid var(--wn)}
+.order.new{border-left-color:var(--acc);background:linear-gradient(90deg,rgba(59,130,246,.06),var(--surf2))}
+.order.acc{border-left-color:var(--pu)}
+.order.active{border-left-color:var(--rt);background:linear-gradient(90deg,rgba(139,92,246,.06),var(--surf2))}
+.order.done{border-left-color:var(--pri2);opacity:.85}
+.order.cancel{border-left-color:var(--er);opacity:.7}
+.order-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.order-h .id{font-size:12px;font-weight:900;color:var(--rt)}
+.order-h .date{font-size:10px;color:var(--tx3);margin-top:2px}
+.order-h .badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap}
+.badge.new{background:rgba(59,130,246,.15);color:#60A5FA}
+.badge.acc{background:rgba(139,92,246,.15);color:#A78BFA}
+.badge.rt{background:rgba(139,92,246,.15);color:var(--rt)}
+.badge.done{background:rgba(16,185,129,.15);color:#34D399}
+.badge.cancel{background:rgba(239,68,68,.15);color:#F87171}
+.order-cust{font-size:12px;color:var(--tx2);line-height:1.7;padding:10px;background:var(--surf);border-radius:var(--r2);margin-bottom:10px}
+.order-cust b{color:var(--tx);font-weight:700}
+.order-dates{background:var(--surf);border-radius:var(--r2);padding:10px;margin:10px 0;font-size:12px;line-height:1.7;color:var(--tx2)}
+.order-dates b{color:var(--tx)}
+.order-total{display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--brd);font-size:14px;font-weight:900}
+.order-total .v{color:var(--rt);font-size:18px}
+.order-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.order-acts .btn{flex:1;min-width:90px}
+
+.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
+.empty .ic{font-size:64px;margin-bottom:14px;opacity:.4}
+.empty h3{font-size:16px;font-weight:800;color:var(--tx2);margin-bottom:8px}
+.empty p{font-size:13px;line-height:1.6;margin-bottom:16px}
+.empty button{background:linear-gradient(135deg,var(--rt),#6D28D9);color:#fff;border:none;padding:12px 24px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+
+.open-profile{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r3);padding:24px 20px;text-align:center}
+.open-profile .ic{font-size:60px;margin-bottom:12px}
+.open-profile .t{font-size:20px;font-weight:900;margin-bottom:6px}
+.open-profile .d{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:20px}
+
+.period-tabs{display:flex;gap:6px;margin-bottom:14px}
+.ptab{flex:1;padding:10px;background:var(--surf2);border:2px solid transparent;border-radius:var(--r2);color:var(--tx2);font-size:12px;font-weight:800;cursor:pointer;text-align:center;font-family:inherit}
+.ptab.on{background:var(--rtS);border-color:var(--rt);color:var(--rt)}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:8px 14px;background:var(--surf);border:1px solid var(--brd);border-radius:20px;font-size:12px;font-weight:700;color:var(--tx2);cursor:pointer;white-space:nowrap;font-family:inherit}
+.chip.on{background:var(--rtS);border-color:var(--rt);color:var(--rt);font-weight:800}
+
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--brd);display:flex;justify-content:space-around;padding:8px 0 calc(8px + var(--safe-b));z-index:100;max-width:640px;margin:0 auto}
+.nb{background:none;border:none;color:var(--tx3);font-size:10px;font-weight:600;padding:6px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;font-family:inherit}
+.nb.on{color:var(--rt)}
+.nb:active{transform:scale(.92)}
+.nb .ic{font-size:22px}
+
+.tst{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+.tst.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tst.e{background:var(--er);color:#fff}
+.tst.o{background:var(--pri);color:#fff}
+
+.md{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.md.on{display:flex}
+.mbox{background:var(--surf);border-radius:var(--r3);padding:24px;max-width:380px;width:100%;text-align:center}
+.mico{font-size:48px;margin-bottom:12px}
+.mt{font-size:17px;font-weight:800;margin-bottom:6px}
+.mdd{font-size:14px;color:var(--tx2);line-height:1.5;margin-bottom:20px;white-space:pre-line}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mbtn{padding:14px;border-radius:var(--r2);font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit}
+.mbtn.g{background:var(--surf2);color:var(--tx);border:1px solid var(--brd)}
+.mbtn.r{background:var(--er);color:#fff}
+.mbtn.p{background:linear-gradient(135deg,var(--rt),#6D28D9);color:#fff}
+
+.sk{background:linear-gradient(90deg,var(--surf) 25%,var(--surf2) 50%,var(--surf) 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--r3);height:120px;margin-bottom:12px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body data-t="dark">
+
+<div class="app">
+  <div class="hdr">
+    <div class="htop">
+      <div class="brand">
+        <div class="brand-r">R</div>
+        <div>
+          <div class="brand-t">RAYIS <span>IJARA</span></div>
+          <div class="brand-s">IJARACHI PANELI</div>
+        </div>
+      </div>
+      <button class="hbtn" onclick="confirmLogout()">Chiqish</button>
+    </div>
+    <div class="hinfo">
+      <div class="av">🔑</div>
+      <div class="nm" id="renterName">Ijarachi</div>
+      <div class="badge">RENTER</div>
+    </div>
+  </div>
+
+  <div class="db-status connecting" id="dbStatus">
+    <span class="dot"></span><span id="dbText">Firebase ulanmoqda...</span>
+  </div>
+
+  <div id="content">
+    <div class="sk"></div>
+    <div class="sk"></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb" onclick="location.href='home.html'"><span class="ic">🏠</span><span>Bosh</span></button>
+  <button class="nb" onclick="location.href='index.html'"><span class="ic">🔐</span><span>Kirish</span></button>
+  <button class="nb on"><span class="ic">🔑</span><span>Ijara</span></button>
+  <button class="nb" onclick="location.href='orders.html'"><span class="ic">📋</span><span>Buyurtma</span></button>
+  <button class="nb" onclick="location.href='profile.html'"><span class="ic">👤</span><span>Profil</span></button>
+</div>
+
+<div class="md" id="md" onclick="if(event.target.id==='md')closeMd()">
+  <div class="mbox" id="mbox"></div>
+</div>
+
+<div class="tst" id="tst"></div>
+
+<script>
+var RENTAL_CATS=[
+  {id:'uskuna',n:'Qurilish uskunasi',e:'🔧'},
+  {id:'betonor',n:'Betonorastvor',e:'🌀'},
+  {id:'lesa',n:'Lesa va opalubka',e:'🪜'},
+  {id:'generator',n:'Generator',e:'⚡'},
+  {id:'kompressor',n:'Kompressor',e:'💨'},
+  {id:'drel',n:'Drel / Perforator',e:'🔨'},
+  {id:'avto',n:'Avtomobil',e:'🚗'},
+  {id:'moto',n:'Mototsikl',e:'🏍'},
+  {id:'velo',n:'Velosiped',e:'🚲'},
+  {id:'traktor',n:'Traktor',e:'🚜'},
+  {id:'manip',n:'Manipulyator',e:'🏗'},
+  {id:'kostyum',n:'Kostyum',e:'👔'},
+  {id:'palatka',n:'Palatka / Chodir',e:'⛺'},
+  {id:'stol',n:'Stol-stul',e:'🪑'},
+  {id:'ovoz',n:'Ovoz apparati',e:'🔊'},
+  {id:'proyektor',n:'Proyektor',e:'📽'},
+  {id:'kamera',n:'Kamera',e:'📷'},
+  {id:'pribor',n:'O\'lchov priborlari',e:'📏'},
+  {id:'boshqa',n:'Boshqa',e:'📦'}
+];
+
+var PERIODS=[
+  {id:'kun',n:'Kunlik',label:'kun'},
+  {id:'hafta',n:'Haftalik',label:'hafta'},
+  {id:'oy',n:'Oylik',label:'oy'},
+  {id:'yil',n:'Yillik',label:'yil'}
+];
+
+var S={
+  tab:'dash',
+  user:{},
+  profile:null,
+  allItems:[],
+  orders:[],
+  editId:null,
+  imgBuffers:[],
+  uploading:false,
+  filterOrders:'all'
+};
+
+function fmt(n){return Math.round(Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' ')+" so'm";}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,tp){
+  var e=document.getElementById('tst');
+  e.textContent=m;
+  e.className='tst on'+(tp==='e'?' e':tp==='o'?' o':'');
+  clearTimeout(e._t);
+  e._t=setTimeout(function(){e.className='tst'+(tp==='e'?' e':tp==='o'?' o':'');},2400);
+}
+function updateDbStatus(cls,text){
+  var el=document.getElementById('dbStatus');
+  if(!el)return;
+  el.className='db-status '+cls;
+  document.getElementById('dbText').textContent=text;
+}
+function toArray(val){
+  if(!val)return[];
+  if(Array.isArray(val))return val;
+  if(typeof val==='object')return Object.values(val);
+  return[];
+}
+function uid(p){return p+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
+function fmtDate(iso){
+  if(!iso)return '—';
+  try{
+    var d=new Date(iso);
+    var pad=function(n){return String(n).padStart(2,'0');};
+    return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  }catch(e){return '—';}
+}
+function fmtShortDate(iso){
+  if(!iso)return '—';
+  try{
+    var d=new Date(iso);
+    var pad=function(n){return String(n).padStart(2,'0');};
+    return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear();
+  }catch(e){return '—';}
+}
+
+function myItems(){
+  return S.allItems.filter(function(i){
+    return i.renterId===S.user.userId||i.ownerId===S.user.userId;
+  });
+}
+function myOrders(){
+  if(!S.user.userId)return[];
+  return S.orders.filter(function(o){
+    return o.renterId===S.user.userId||o.ownerId===S.user.userId;
+  });
+}
+function countNewOrders(){
+  return myOrders().filter(function(o){return o.status==='yangi';}).length;
+}
+
+function render(){
+  if(!S.user||!S.user.userId){
+    document.getElementById('content').innerHTML=
+      '<div class="empty">'+
+        '<div class="ic">🔐</div>'+
+        '<h3>Kirish kerak</h3>'+
+        '<p>Ijarachi panelidan foydalanish uchun tizimga kiring</p>'+
+        '<button onclick="location.href=\'index.html\'">🔐 Kirish</button>'+
+      '</div>';
+    return;
+  }
+  S.profile=S.profile||null;
+  document.getElementById('renterName').textContent=S.user.name||'Ijarachi';
+  if(!S.profile){renderOpenProfile();return;}
+  var h='';
+  h+=renderTabs();
+  if(S.tab==='dash')h+=renderDash();
+  else if(S.tab==='add')h+=renderAdd();
+  else if(S.tab==='list')h+=renderList();
+  else if(S.tab==='orders')h+=renderOrders();
+  document.getElementById('content').innerHTML=h;
+}
+
+function renderOpenProfile(){
+  S.imgBuffers=[];
+  var h='<div class="open-profile">'+
+    '<div class="ic">🔑</div>'+
+    '<div class="t">Ijarachi profilini yarating</div>'+
+    '<div class="d">Uskuna, asbob yoki transportingizni<br>ijaraga qo\'yish uchun ro\'yxatdan o\'ting</div>'+
+  '</div>'+
+  '<div class="sec" style="margin-top:14px">'+
+    '<div class="sech"><div class="sect"><span class="num">1</span>Ma\'lumotlaringiz</div></div>'+
+    '<div class="secb">'+
+      '<div class="field"><label class="flabel">To\'liq ismingiz <span class="hint">*</span></label>'+
+        '<input class="finput" id="rName" value="'+esc(S.user.name||'')+'" maxlength="60"></div>'+
+      '<div class="field"><label class="flabel">Telefon <span class="hint">*</span></label>'+
+        '<input class="finput" id="rPhone" type="tel" value="'+esc(S.user.phone||'')+'" maxlength="20"></div>'+
+      '<div class="field"><label class="flabel">Hudud <span class="hint">*</span></label>'+
+        '<input class="finput" id="rRegion" value="'+esc(S.user.region||'')+'" maxlength="40"></div>'+
+      '<div class="field"><label class="flabel">Manzil</label>'+
+        '<input class="finput" id="rAddress" placeholder="Topshirish joyi" maxlength="120"></div>'+
+      '<div class="field"><label class="flabel">Tavsif <span class="hint">20-500 belgi</span></label>'+
+        '<textarea class="ftextarea" id="rDesc" placeholder="Nima ijaraga berasiz..." maxlength="500"></textarea></div>'+
+      '<div class="field"><label class="flabel">Hujjat rasmi <span class="hint">1-3 ta · *</span></label>'+
+        '<div class="imgup" onclick="document.getElementById(\'rImg\').click()">'+
+          '<div class="ic">📷</div><div class="t">Rasm yuklash</div>'+
+        '</div>'+
+        '<input type="file" id="rImg" accept="image/*" multiple style="display:none" onchange="pickImg(event,3)">'+
+        '<div class="imgprev" id="rImgPrev"></div>'+
+      '</div>'+
+      '<button class="btn bp" id="createProfileBtn" onclick="createProfile()">✅ Ro\'yxatdan o\'tish</button>'+
+    '</div>'+
+  '</div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+async function pickImg(e,maxCount){
+  maxCount=maxCount||5;
+  var files=Array.from(e.target.files||[]);
+  if(!files.length)return;
+  if(S.imgBuffers.length+files.length>maxCount){toast('Maksimal '+maxCount+' ta rasm','e');return;}
+  if(S.uploading){toast('Yuklanmoqda, kuting...','e');return;}
+  S.uploading=true;
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(f.size>5*1024*1024){toast('"'+f.name+'" juda katta','e');continue;}
+    var tempId='tmp_'+Date.now()+'_'+i;
+    S.imgBuffers.push(tempId);
+    renderImgPrev();
+    try{
+      var res=await DB.uploadImage(f,'rentals');
+      var idx=S.imgBuffers.indexOf(tempId);
+      if(idx!==-1)S.imgBuffers[idx]=res.url;
+      renderImgPrev();
+    }catch(err){
+      var idx2=S.imgBuffers.indexOf(tempId);
+      if(idx2!==-1)S.imgBuffers.splice(idx2,1);
+      renderImgPrev();
+      toast('Xato: '+(err.message||''),'e');
+    }
+  }
+  S.uploading=false;
+  e.target.value='';
+  toast('✅ '+S.imgBuffers.length+' ta rasm','o');
+}
+
+function renderImgPrev(){
+  var el=document.getElementById('rImgPrev')||document.getElementById('iImgPrev');
+  if(!el)return;
+  el.innerHTML=S.imgBuffers.map(function(src,i){
+    var isUp=String(src).indexOf('tmp_')===0;
+    return '<div class="imgpv">'+
+      (isUp?'<div class="up"><div>⏳</div></div>':'<img src="'+src+'">')+
+      '<button class="rm" onclick="rmImg('+i+')">✕</button>'+
+    '</div>';
+  }).join('');
+}
+function rmImg(i){S.imgBuffers.splice(i,1);renderImgPrev();}
+
+async function createProfile(){
+  if(S.uploading){toast('Rasmlar yuklanmoqda','e');return;}
+  var n=(document.getElementById('rName').value||'').trim();
+  var ph=(document.getElementById('rPhone').value||'').trim();
+  var rg=(document.getElementById('rRegion').value||'').trim();
+  var ad=(document.getElementById('rAddress').value||'').trim();
+  var d=(document.getElementById('rDesc').value||'').trim();
+  var validImgs=S.imgBuffers.filter(function(x){return String(x).indexOf('tmp_')!==0;});
+  if(n.length<2)return toast('Ismingizni kiriting','e');
+  if(ph.replace(/\D/g,'').length<7)return toast('Telefon kiriting','e');
+  if(rg.length<2)return toast('Hudud kiriting','e');
+  if(d.length<20)return toast('Tavsif kamida 20 belgi','e');
+  if(validImgs.length<1)return toast('Kamida 1 ta rasm','e');
+  var btn=document.getElementById('createProfileBtn');
+  btn.disabled=true;btn.textContent='⏳ Saqlanmoqda...';
+  try{
+    var profile={
+      id:uid('renter'),
+      userId:S.user.userId,
+      ownerId:S.user.userId,
+      name:n,phone:ph,region:rg,address:ad,description:d,
+      documents:validImgs.slice(),
+      verified:false,rt:5.0,rc:0,
+      createdAt:new Date().toISOString()
+    };
+    var renters=toArray(DB.get('renters',[]));
+    renters.push(profile);
+    await DB.set('renters',renters);
+    S.profile=profile;
+    S.imgBuffers=[];
+    toast('✅ Profilingiz yaratildi!','o');
+    setTimeout(render,400);
+  }catch(e){
+    btn.disabled=false;btn.textContent='✅ Ro\'yxatdan o\'tish';
+    toast('Xato: '+(e.message||''),'e');
+  }
+}
+
+function renderTabs(){
+  var newOrders=countNewOrders();
+  return '<div class="tabs">'+
+    '<button class="tab '+(S.tab==='dash'?'on':'')+'" onclick="setTab(\'dash\')">📊 Panel</button>'+
+    '<button class="tab '+(S.tab==='add'?'on':'')+'" onclick="setTab(\'add\')">➕ Ijara qo\'shish</button>'+
+    '<button class="tab '+(S.tab==='list'?'on':'')+'" onclick="setTab(\'list\')">🔑 Ijaralarim</button>'+
+    '<button class="tab '+(S.tab==='orders'?'on':'')+'" onclick="setTab(\'orders\')">📋 Buyurtmalar'+
+      (newOrders>0?'<span class="badge">'+newOrders+'</span>':'')+
+    '</button>'+
+  '</div>';
+}
+function setTab(t){S.tab=t;S.editId=null;S.imgBuffers=[];render();window.scrollTo({top:0,behavior:'smooth'});}
+
+function renderDash(){
+  var items=myItems();
+  var orders=myOrders();
+  var newOrders=orders.filter(function(o){return o.status==='yangi';});
+  var activeOrders=orders.filter(function(o){return o.status==='faol';});
+  var totalRevenue=orders.filter(function(o){return o.status==='yakunlandi';})
+    .reduce(function(s,o){return s+(Number(o.total)||0);},0);
+  var h='<div class="kpis">'+
+    '<div class="kpi"><div class="v">'+items.length+'</div><div class="l">E\'lonlar</div></div>'+
+    '<div class="kpi"><div class="v yellow">'+newOrders.length+'</div><div class="l">Yangi so\'rov</div></div>'+
+    '<div class="kpi"><div class="v blue">'+activeOrders.length+'</div><div class="l">Faol ijara</div></div>'+
+    '<div class="kpi"><div class="v green" style="font-size:16px">'+fmt(totalRevenue)+'</div><div class="l">Daromad</div></div>'+
+  '</div>';
+  h+='<div class="sec">'+
+    '<div class="sech"><div class="sect">👤 Profil</div></div>'+
+    '<div class="secb">'+
+      '<div style="font-size:15px;font-weight:800;margin-bottom:6px">'+esc(S.profile.name)+'</div>'+
+      '<div style="font-size:12px;color:var(--tx2);line-height:1.7">'+
+        '📞 '+esc(S.profile.phone)+'<br>'+
+        '📍 '+esc(S.profile.region)+'<br>'+
+        (S.profile.address?'🏠 '+esc(S.profile.address)+'<br>':'')+
+        '⭐ '+(S.profile.rt||5).toFixed(1)+' ('+(S.profile.rc||0)+' sharh)'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  h+='<div class="sec">'+
+    '<div class="sech"><div class="sect">📋 So\'nggi so\'rovlar</div>'+
+    '<div style="font-size:12px;color:var(--tx3)">'+orders.length+' ta</div></div>'+
+    '<div class="secb">';
+  if(!orders.length){
+    h+='<div style="text-align:center;padding:24px;color:var(--tx3);font-size:13px">Hozircha so\'rov yo\'q</div>';
+  }else{
+    orders.slice(0,3).forEach(function(o){h+=orderCard(o,true);});
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function renderAdd(){
+  if(S.editId)return renderEdit();
+  var h='<div class="sec">'+
+    '<div class="sech"><div class="sect"><span class="num">➕</span>Yangi ijara e\'loni</div></div>'+
+    '<div class="secb">'+
+      '<div class="field"><label class="flabel">Rasm <span class="hint">1-5 ta · *</span></label>'+
+        '<div class="imgup" onclick="document.getElementById(\'iImg\').click()">'+
+          '<div class="ic">📷</div><div class="t">Rasm qo\'shish</div>'+
+        '</div>'+
+        '<input type="file" id="iImg" accept="image/*" multiple style="display:none" onchange="pickImg(event,5)">'+
+        '<div class="imgprev" id="iImgPrev"></div>'+
+      '</div>'+
+      '<div class="field"><label class="flabel">Nomi <span class="hint">*</span></label>'+
+        '<input class="finput" id="iName" placeholder="Masalan: Betonorastvor" maxlength="80"></div>'+
+      '<div class="field"><label class="flabel">Kategoriya <span class="hint">*</span></label>'+
+        '<select class="fselect" id="iCat">'+
+          '<option value="">Tanlang...</option>'+
+          RENTAL_CATS.map(function(c){return '<option value="'+c.id+'">'+c.e+' '+esc(c.n)+'</option>';}).join('')+
+        '</select></div>'+
+      '<div class="field"><label class="flabel">Ijara davri <span class="hint">*</span></label>'+
+        '<div class="period-tabs" id="periodTabs">'+
+          PERIODS.map(function(p,i){
+            return '<button type="button" class="ptab '+(i===0?'on':'')+'" data-period="'+p.id+'" onclick="pickPeriod(\''+p.id+'\')">'+p.n+'</button>';
+          }).join('')+
+        '</div>'+
+        '<input type="hidden" id="iPeriod" value="kun">'+
+      '</div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="flabel">Narx <span class="hint">*</span></label>'+
+          '<input class="finput" id="iPrice" type="number" placeholder="150000" min="0"></div>'+
+        '<div class="field"><label class="flabel">Soni <span class="hint">*</span></label>'+
+          '<input class="finput" id="iStock" type="number" value="1" min="1"></div>'+
+      '</div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="flabel">Minimal muddat</label>'+
+          '<input class="finput" id="iMinPeriod" type="number" value="1" min="1"></div>'+
+        '<div class="field"><label class="flabel">Garov (depozit)</label>'+
+          '<input class="finput" id="iDeposit" type="number" placeholder="0" min="0"></div>'+
+      '</div>'+
+      '<div class="field"><label class="flabel">Tavsif <span class="hint">20-500 belgi</span></label>'+
+        '<textarea class="ftextarea" id="iDesc" placeholder="Uskuna holati..." maxlength="500"></textarea></div>'+
+      '<button class="btn bp" id="addItemBtn" onclick="addRental()">💾 E\'lon qo\'shish</button>'+
+    '</div>'+
+  '</div>';
+  return h;
+}
+
+function pickPeriod(id){
+  var tabs=document.querySelectorAll('.ptab');
+  tabs.forEach(function(t){t.classList.toggle('on',t.dataset.period===id);});
+  document.getElementById('iPeriod').value=id;
+}
+
+async function addRental(){
+  if(S.uploading){toast('Rasmlar yuklanmoqda','e');return;}
+  var n=(document.getElementById('iName').value||'').trim();
+  var c=document.getElementById('iCat').value;
+  var period=document.getElementById('iPeriod').value;
+  var p=parseInt(document.getElementById('iPrice').value);
+  var s=parseInt(document.getElementById('iStock').value)||1;
+  var minP=parseInt(document.getElementById('iMinPeriod').value)||1;
+  var dep=parseInt(document.getElementById('iDeposit').value)||0;
+  var d=(document.getElementById('iDesc').value||'').trim();
+  var validImgs=S.imgBuffers.filter(function(x){return String(x).indexOf('tmp_')!==0;});
+  if(validImgs.length<1)return toast('Kamida 1 ta rasm','e');
+  if(n.length<2)return toast('Nomini kiriting','e');
+  if(!c)return toast('Kategoriya tanlang','e');
+  if(!p||p<=0)return toast('Narxni kiriting','e');
+  if(d.length<20)return toast('Tavsif kamida 20 belgi','e');
+  var btn=document.getElementById('addItemBtn');
+  btn.disabled=true;btn.textContent='⏳ Saqlanmoqda...';
+  try{
+    var catObj=RENTAL_CATS.find(function(x){return x.id===c;});
+    var periodObj=PERIODS.find(function(x){return x.id===period;});
+    var item={
+      id:uid('ri'),renterId:S.user.userId,ownerId:S.user.userId,
+      renterName:S.profile.name,name:n,category:c,
+      catName:catObj?catObj.n:'—',emoji:catObj?catObj.e:'🔑',
+      period:period,periodLabel:periodObj?periodObj.label:'kun',
+      price:p,stock:s,minPeriod:minP,deposit:dep,
+      description:d,images:validImgs.slice(),
+      region:S.profile.region,phone:S.profile.phone,
+      rt:5.0,rc:0,status:'active',
+      createdAt:new Date().toISOString()
+    };
+    var items=toArray(DB.get('rentals',[]));
+    items.unshift(item);
+    await DB.set('rentals',items);
+    S.imgBuffers=[];
+    toast('✅ E\'lon qo\'shildi!','o');
+    setTimeout(function(){S.tab='list';render();},500);
+  }catch(e){
+    btn.disabled=false;btn.textContent='💾 E\'lon qo\'shish';
+    toast('Xato: '+(e.message||''),'e');
+  }
+}
+
+function renderEdit(){
+  var it=myItems().find(function(x){return x.id===S.editId;});
+  if(!it){S.editId=null;return renderAdd();}
+  if(S.imgBuffers.length===0&&it.images)S.imgBuffers=it.images.slice();
+  var h='<div class="sec">'+
+    '<div class="sech"><div class="sect">✏️ Tahrirlash</div></div>'+
+    '<div class="secb">'+
+      '<div class="field"><label class="flabel">Rasm</label>'+
+        '<div class="imgup" onclick="document.getElementById(\'iImg\').click()">'+
+          '<div class="ic">📷</div><div class="t">Rasm qo\'shish</div>'+
+        '</div>'+
+        '<input type="file" id="iImg" accept="image/*" multiple style="display:none" onchange="pickImg(event,5)">'+
+        '<div class="imgprev" id="iImgPrev">'+
+          S.imgBuffers.map(function(src,i){
+            var isUp=String(src).indexOf('tmp_')===0;
+            return '<div class="imgpv">'+
+              (isUp?'<div class="up"><div>⏳</div></div>':'<img src="'+src+'">')+
+              '<button class="rm" onclick="rmImg('+i+')">✕</button>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="field"><label class="flabel">Nomi</label>'+
+        '<input class="finput" id="iName" value="'+esc(it.name)+'"></div>'+
+      '<div class="field"><label class="flabel">Kategoriya</label>'+
+        '<select class="fselect" id="iCat">'+
+          RENTAL_CATS.map(function(c){return '<option value="'+c.id+'" '+(it.category===c.id?'selected':'')+'>'+c.e+' '+esc(c.n)+'</option>';}).join('')+
+        '</select></div>'+
+      '<div class="field"><label class="flabel">Ijara davri</label>'+
+        '<div class="period-tabs">'+
+          PERIODS.map(function(p){
+            return '<button type="button" class="ptab '+(it.period===p.id?'on':'')+'" data-period="'+p.id+'" onclick="pickPeriod(\''+p.id+'\')">'+p.n+'</button>';
+          }).join('')+
+        '</div>'+
+        '<input type="hidden" id="iPeriod" value="'+it.period+'">'+
+      '</div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="flabel">Narx</label>'+
+          '<input class="finput" id="iPrice" type="number" value="'+it.price+'"></div>'+
+        '<div class="field"><label class="flabel">Soni</label>'+
+          '<input class="finput" id="iStock" type="number" value="'+it.stock+'"></div>'+
+      '</div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="flabel">Minimal muddat</label>'+
+          '<input class="finput" id="iMinPeriod" type="number" value="'+(it.minPeriod||1)+'"></div>'+
+        '<div class="field"><label class="flabel">Garov</label>'+
+          '<input class="finput" id="iDeposit" type="number" value="'+(it.deposit||0)+'"></div>'+
+      '</div>'+
+      '<div class="field"><label class="flabel">Tavsif</label>'+
+        '<textarea class="ftextarea" id="iDesc" maxlength="500">'+esc(it.description||'')+'</textarea></div>'+
+      '<button class="btn bp" id="saveItemBtn" onclick="updateRental()">💾 Saqlash</button>'+
+      '<button class="btn bg" style="margin-top:8px" onclick="cancelEdit()">← Bekor</button>'+
+    '</div>'+
+  '</div>';
+  return h;
+}
+
+async function updateRental(){
+  if(S.uploading){toast('Rasmlar yuklanmoqda','e');return;}
+  var n=(document.getElementById('iName').value||'').trim();
+  var c=document.getElementById('iCat').value;
+  var period=document.getElementById('iPeriod').value;
+  var p=parseInt(document.getElementById('iPrice').value);
+  var s=parseInt(document.getElementById('iStock').value)||1;
+  var minP=parseInt(document.getElementById('iMinPeriod').value)||1;
+  var dep=parseInt(document.getElementById('iDeposit').value)||0;
+  var d=(document.getElementById('iDesc').value||'').trim();
+  var validImgs=S.imgBuffers.filter(function(x){return String(x).indexOf('tmp_')!==0;});
+  if(validImgs.length<1)return toast('Kamida 1 ta rasm','e');
+  if(!p||p<=0)return toast('Narxni kiriting','e');
+  var btn=document.getElementById('saveItemBtn');
+  btn.disabled=true;btn.textContent='⏳ Saqlanmoqda...';
+  try{
+    var items=toArray(DB.get('rentals',[]));
+    var idx=items.findIndex(function(x){return x.id===S.editId;});
+    if(idx===-1)throw new Error('Topilmadi');
+    var catObj=RENTAL_CATS.find(function(x){return x.id===c;});
+    var periodObj=PERIODS.find(function(x){return x.id===period;});
+    items[idx].name=n;
+    items[idx].category=c;
+    items[idx].catName=catObj?catObj.n:items[idx].catName;
+    items[idx].emoji=catObj?catObj.e:items[idx].emoji;
+    items[idx].period=period;
+    items[idx].periodLabel=periodObj?periodObj.label:'kun';
+    items[idx].price=p;
+    items[idx].stock=s;
+    items[idx].minPeriod=minP;
+    items[idx].deposit=dep;
+    items[idx].description=d;
+    items[idx].images=validImgs.slice();
+    items[idx].updatedAt=new Date().toISOString();
+    await DB.set('rentals',items);
+    S.editId=null;S.imgBuffers=[];
+    toast('✅ Saqlandi','o');
+    setTimeout(function(){S.tab='list';render();},500);
+  }catch(e){
+    btn.disabled=false;btn.textContent='💾 Saqlash';
+    toast('Xato: '+(e.message||''),'e');
+  }
+}
+function cancelEdit(){S.editId=null;S.imgBuffers=[];render();}
+
+function renderList(){
+  var items=myItems();
+  var h='<div class="sec">'+
+    '<div class="sech"><div class="sect">🔑 Ijaralarim</div>'+
+    '<div style="font-size:12px;color:var(--tx3)">'+items.length+' ta</div></div>'+
+    '<div class="secb">';
+  if(!items.length){
+    h+='<div style="text-align:center;padding:24px;color:var(--tx3);font-size:13px">Hozircha e\'lon yo\'q</div>';
+  }else{
+    items.forEach(function(it){
+      var img=it.images&&it.images[0]?'<img src="'+it.images[0]+'">':(it.emoji||'🔑');
+      h+='<div class="row">'+
+        '<div class="img">'+img+'</div>'+
+        '<div class="info">'+
+          '<div class="n">'+esc(it.name)+'</div>'+
+          '<div class="m">'+esc(it.catName||'—')+' · '+esc(it.region||'—')+'</div>'+
+          '<div class="p">'+fmt(it.price)+' <span>/ '+esc(it.periodLabel)+'</span></div>'+
+          '<div class="stock">📦 '+it.stock+' dona'+(it.deposit>0?' · Garov '+fmt(it.deposit):'')+'</div>'+
+          '<div class="rt">⭐ '+(it.rt||5.0).toFixed(1)+' ('+(it.rc||0)+')</div>'+
+        '</div>'+
+        '<div class="act">'+
+          '<button class="abtn edit" onclick="editItem(\''+it.id+'\')">✏️</button>'+
+          '<button class="abtn del" onclick="delItem(\''+it.id+'\')">🗑</button>'+
+        '</div>'+
+      '</div>';
+    });
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function editItem(id){S.editId=id;S.imgBuffers=[];S.tab='add';render();window.scrollTo({top:0,behavior:'smooth'});}
+
+var _delId=null;
+function delItem(id){
+  _delId=id;
+  openMd('🗑','O\'chirilsinmi?','E\'lon o\'chiriladi.','O\'chirish','r',async function(){
+    var items=toArray(DB.get('rentals',[])).filter(function(i){return i.id!==_delId;});
+    try{
+      await DB.set('rentals',items);
+      toast('🗑 O\'chirildi','o');
+    }catch(e){toast('Xato','e');}
+  });
+}
+
+function setFilter(f){S.filterOrders=f;render();}
+
+function renderOrders(){
+  var all=myOrders();
+  var newOrders=all.filter(function(o){return o.status==='yangi';});
+  var activeOrders=all.filter(function(o){return o.status==='faol';});
+  var doneOrders=all.filter(function(o){return o.status==='yakunlandi';});
+  var cancelOrders=all.filter(function(o){return o.status==='bekor';});
+  var h='<div class="chips">'+
+    '<div class="chip '+(S.filterOrders==='all'?'on':'')+'" onclick="setFilter(\'all\')">Barchasi ('+all.length+')</div>'+
+    '<div class="chip '+(S.filterOrders==='yangi'?'on':'')+'" onclick="setFilter(\'yangi\')">🆕 Yangi ('+newOrders.length+')</div>'+
+    '<div class="chip '+(S.filterOrders==='faol'?'on':'')+'" onclick="setFilter(\'faol\')">🔑 Faol ('+activeOrders.length+')</div>'+
+    '<div class="chip '+(S.filterOrders==='yakunlandi'?'on':'')+'" onclick="setFilter(\'yakunlandi\')">✓ Yakunlangan ('+doneOrders.length+')</div>'+
+    '<div class="chip '+(S.filterOrders==='bekor'?'on':'')+'" onclick="setFilter(\'bekor\')">❌ Bekor ('+cancelOrders.length+')</div>'+
+  '</div>';
+  var list=S.filterOrders==='all'?all:all.filter(function(o){return o.status===S.filterOrders;});
+  list.sort(function(a,b){return (b.createdAt||'').localeCompare(a.createdAt||'');});
+  h+='<div class="sec">'+
+    '<div class="sech"><div class="sect">📋 Buyurtmalar</div>'+
+    '<div style="font-size:12px;color:var(--tx3)">'+list.length+' ta</div></div>'+
+    '<div class="secb">';
+  if(!list.length){
+    h+='<div style="text-align:center;padding:24px;color:var(--tx3);font-size:13px">Buyurtma yo\'q</div>';
+  }else{
+    list.forEach(function(o){h+=orderCard(o,false);});
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function orderCard(o,compact){
+  var st=o.status||'yangi';
+  var stMap={
+    yangi:{l:'🆕 Yangi',c:'new'},
+    tasdiq:{l:'✅ Tasdiqlandi',c:'acc'},
+    faol:{l:'🔑 Faol',c:'rt'},
+    yakunlandi:{l:'✓ Yakunlandi',c:'done'},
+    bekor:{l:'❌ Bekor',c:'cancel'}
+  };
+  var s=stMap[st]||stMap.yangi;
+  var cust=o.customer||{};
+  var h='<div class="order '+(st==='yangi'?'new':st==='faol'?'active':st==='yakunlandi'?'done':st==='bekor'?'cancel':'')+'">'+
+    '<div class="order-h">'+
+      '<div><div class="id">#'+esc(o.id)+'</div>'+
+      '<div class="date">'+fmtDate(o.createdAt)+'</div></div>'+
+      '<div class="badge '+s.c+'">'+s.l+'</div>'+
+    '</div>'+
+    '<div class="order-cust">'+
+      '👤 <b>'+esc(cust.name||'—')+'</b><br>'+
+      '📞 '+esc(cust.phone||'—')+'<br>'+
+      (cust.address?'📍 '+esc(cust.address):'')+
+    '</div>';
+  if(o.itemName){
+    h+='<div style="font-size:12px;color:var(--tx2);padding:8px 0">🔑 '+esc(o.itemName)+'</div>';
+  }
+  h+='<div class="order-dates">'+
+    '📅 <b>Boshlanish:</b> '+fmtShortDate(o.startDate)+'<br>'+
+    '📅 <b>Tugash:</b> '+fmtShortDate(o.endDate)+'<br>'+
+    '⏱ <b>Muddat:</b> '+(o.days||1)+' '+esc(o.periodLabel||'kun')+'<br>'+
+    (o.deposit>0?'💰 <b>Garov:</b> '+fmt(o.deposit):'')+
+  '</div>';
+  h+='<div class="order-total"><span>Jami:</span><span class="v">'+fmt(o.total||0)+'</span></div>';
+  if(!compact){
+    if(st==='yangi'){
+      h+='<div class="order-acts">'+
+        '<button class="btn bgr bsm" onclick="setStatus(\''+o.id+'\',\'tasdiq\')">✅ Qabul</button>'+
+        '<button class="btn br bsm" onclick="setStatus(\''+o.id+'\',\'bekor\')">❌ Rad</button>'+
+        (cust.phone?'<a href="tel:'+esc(cust.phone)+'" class="btn bg bsm" style="text-decoration:none">📞</a>':'')+
+      '</div>';
+    }else if(st==='tasdiq'){
+      h+='<div class="order-acts">'+
+        '<button class="btn bp bsm" onclick="setStatus(\''+o.id+'\',\'faol\')">🔑 Ijaraga berish</button>'+
+        (cust.phone?'<a href="tel:'+esc(cust.phone)+'" class="btn bg bsm" style="text-decoration:none">📞</a>':'')+
+      '</div>';
+    }else if(st==='faol'){
+      h+='<div class="order-acts">'+
+        '<button class="btn bgr bsm" onclick="setStatus(\''+o.id+'\',\'yakunlandi\')">✓ Qaytarib olindi</button>'+
+        (cust.phone?'<a href="tel:'+esc(cust.phone)+'" class="btn bg bsm" style="text-decoration:none">📞</a>':'')+
+      '</div>';
+    }
+  }
+  h+='</div>';
+  return h;
+}
+
+async function setStatus(id,st){
+  try{
+    var orders=toArray(DB.get('rental_orders',[]));
+    var idx=orders.findIndex(function(o){return o.id===id;});
+    if(idx===-1)return;
+    orders[idx].status=st;
+    orders[idx].updatedAt=new Date().toISOString();
+    if(!orders[idx].statusLog)orders[idx].statusLog=[];
+    orders[idx].statusLog.push({status:st,date:new Date().toISOString(),by:S.profile.name});
+    await DB.set('rental_orders',orders);
+    if(window.addNotification){
+      window.addNotification({
+        type:st==='yakunlandi'?'success':st==='bekor'?'danger':'order',
+        icon:st==='yakunlandi'?'✓':st==='bekor'?'❌':'🔑',
+        title:'Ijara: '+st,
+        text:'#'+id,
+        link:'orders.html'
+      });
+    }
+    var m={tasdiq:'✅ Qabul qilindi',faol:'🔑 Ijaraga berildi',yakunlandi:'✓ Yakunlandi',bekor:'❌ Rad etildi'};
+    toast(m[st]||'Yangilandi','o');
+  }catch(e){toast('Xato','e');}
+}
+
+var _cb=null;
+function openMd(ico,t,d,okText,okCls,cb){
+  document.getElementById('mbox').innerHTML=
+    '<div class="mico">'+ico+'</div>'+
+    '<div class="mt">'+t+'</div>'+
+    '<div class="mdd">'+esc(d)+'</div>'+
+    '<div class="mbtns">'+
+      '<button class="mbtn g" onclick="closeMd()">Bekor</button>'+
+      '<button class="mbtn '+(okCls||'r')+'" onclick="mdConfirm()">'+okText+'</button>'+
+    '</div>';
+  _cb=cb;
+  document.getElementById('md').classList.add('on');
+}
+function closeMd(){document.getElementById('md').classList.remove('on');_cb=null;}
+function mdConfirm(){if(_cb)_cb();closeMd();}
+
+function confirmLogout(){
+  openMd('🚪','Chiqish','Hisobdan chiqmoqchimisiz?','Chiqish','r',async function(){
+    try{await DB.remove('user');}catch(e){}
+    toast('👋 Chiqdingiz','o');
+    setTimeout(function(){location.href='index.html';},600);
+  });
+}
+
+function setupListeners(){
+  DB.on('renters',function(val){
+    var renters=toArray(val);
+    S.profile=renters.find(function(r){return r.userId===S.user.userId;})||null;
+    render();
+  });
+  DB.on('rentals',function(val){
+    S.allItems=toArray(val).filter(function(i){return i&&i.name;});
+    render();
+  });
+  DB.on('rental_orders',function(val){
+    S.orders=toArray(val).filter(function(o){return o&&o.id;});
+    render();
+  });
+}
+
+function init(){
+  var th=DB.get('theme','dark');
+  document.body.dataset.t=th;
+  S.user=DB.get('user',{});
+  S.allItems=toArray(DB.get('rentals',[]));
+  S.orders=toArray(DB.get('rental_orders',[]));
+  var renters=toArray(DB.get('renters',[]));
+  S.profile=renters.find(function(r){return r.userId===S.user.userId;})||null;
+  render();
+  if(DB.isReady())onReady();
+  else{
+    window.addEventListener('db:ready',onReady);
+    setTimeout(function(){updateDbStatus('offline','💾 Offline rejim');},3000);
+  }
+  window.addEventListener('db:connection',function(e){
+    updateDbStatus(e.detail.online?'online':'offline',e.detail.online?'🟢 Online':'🔴 Offline');
+  });
+}
+
+function onReady(){
+  console.log('🔥 Firebase tayyor');
+  updateDbStatus('online','🟢 Online — real-time');
+  DB.syncAll().then(function(){
+    S.user=DB.get('user',{});
+    var renters=toArray(DB.get('renters',[]));
+    S.profile=renters.find(function(r){return r.userId===S.user.userId;})||null;
+    S.allItems=toArray(DB.get('rentals',[])).filter(function(i){return i&&i.name;});
+    S.orders=toArray(DB.get('rental_orders',[])).filter(function(o){return o&&o.id;});
+    setupListeners();
+    render();
+  });
+}
+
+init();
+console.log('✅ Ijarachi sahifasi — Firebase bilan');
+</script>
+</body>
+</html>
