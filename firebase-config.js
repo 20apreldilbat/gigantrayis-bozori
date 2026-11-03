@@ -3,7 +3,7 @@
 // ============================================
 
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyA0k805pm7Cz2rw50XxIVb_cMJpCpeMxA",
+  apiKey: "AIzaSyAX_jMlvSTo64seJr1nuAZQdN95_fHI1RI",
   authDomain: "rayis-bozori-88f50.firebaseapp.com",
   databaseURL: "https://rayis-bozori-88f50-default-rtdb.firebaseio.com",
   projectId: "rayis-bozori-88f50",
